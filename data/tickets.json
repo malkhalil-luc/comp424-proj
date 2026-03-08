@@ -1,0 +1,30 @@
+[
+  {
+    "id": "t-001",
+    "title": "Laptop not connecting to VPN",
+    "description": "My laptop stopped connecting to the company VPN since this morning. I have tried restarting but the issue persists.",
+    "ticketStatus": "Open",
+    "createdAt": "2026-03-01T09:15:00Z"
+  },
+  {
+    "id": "t-002",
+    "title": "Email not syncing on mobile",
+    "description": "Company emails are not syncing on my work phone. Last sync was two days ago.",
+    "ticketStatus": "In Progress",
+    "createdAt": "2026-03-02T11:30:00Z"
+  },
+  {
+    "id": "t-003",
+    "title": "Cannot access shared drive",
+    "description": "Getting a permissions error when trying to open the shared marketing drive. Was working last week.",
+    "ticketStatus": "Open",
+    "createdAt": "2026-03-03T14:00:00Z"
+  },
+  {
+    "id": "t-004",
+    "title": "Printer offline in Room 204",
+    "description": "The printer on the second floor Room 204 shows as offline. Multiple people in the team are affected.",
+    "ticketStatus": "Closed",
+    "createdAt": "2026-03-04T08:45:00Z"
+  }
+]

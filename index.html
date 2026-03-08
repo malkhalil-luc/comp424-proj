@@ -2,21 +2,21 @@
 <html lang="en">
     <head>
         <meta charset="utf-8" />
-        <meta name="viewport" content = "width=device-width, initial-scale=1"/>
-        <title> Internal Employee Portal</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <title>Internal Employee Portal</title>
         <link rel="stylesheet" href="css/style.css" />
     </head>
     <body>
         <!-----------------------------Top Bar------------------------------------>
          <header class = "top-bar">
-            <p class="site-title"> Internal Employee Portal</p>
+            <p class="site-title">Internal Employee Portal</p>
         <!------------- Post-MVP: widgets (date time, notifications ..etc)-------->
-            <div class="top-bar-widets" aria-label="Header widgets">
+            <div class="top-bar-widgets" aria-label="Header widgets">
         <!--------------Renders by js in post MVP--------------------------------->
             </div>
          </header>
         <!----------------------- UI Structure------------------------------------>
-        <div class="ui-structure">
+        <div class="app-shell">
         <!---------------- Sidebar navigation menu-------------------------------->
             <nav class="sidebar" aria-label="Main navigation">
                 <ul class="nav-list" role="list">
@@ -41,13 +41,13 @@
                     <li>
                         <a href="#" class="nav-link nav-link--disabled" aria-disabled="true" tabindex="-1">
                             <img src="assets/icons/contact.svg" alt="" class="nav-icon" />
-                            <span class="nav-label"> Directory</span>
+                            <span class="nav-label">Directory</span>
                         </a>
                     </li>
                     <li>
                         <a href="#" class="nav-link nav-link--disabled" aria-disabled="true" tabindex="-1">
                             <img src="assets/icons/calendar-days.svg" alt="" class="nav-icon" />
-                            <span class="nav-label"> Calendar</span>
+                            <span class="nav-label">Calendar</span>
                         </a>
                     </li>
                     <li>
@@ -61,24 +61,24 @@
         <!------------------------------------- Content Area -------------------------------->
             <main id="main">
                 <!-- page title-->
-                <h1> Support Tickets</h1>
+                <h1>Support Tickets</h1>
                 <!--app structure: list panel and details panel side by side on desktop-->
                 <div class="shell">
                     <!-- left panel: search bar, create ticket button, submitted tickets list-->
                      <section class="list-panel" aria-labelledby="list-heading">
-                        <h2 id="list-heading" class="sr-only"> Tickets List</h2>
+                        <h2 id="list-heading" class="sr-only">Tickets List</h2>
                         <!-- Search input-->
                          <div class="list-controls">
-                            <label for="ticket-search"> Search Tickets</label>
+                            <label for="ticket-search">Search Tickets</label>
                             <input id="ticket-search" type="search" placeholder="Type to filter..." autocomplete="off" />
                             <button type="button" id="new-ticket-btn">+ Create New Ticket</button>
                          </div>
                          <!-- Ticket form: hidden by default, show when Create ticket clicked-->
                           <section id="new-ticket-form-section" aria-labelledby="form-heading" hidden >
-                            <h3 id="form-heading"> Submit New Ticket</h3>
+                            <h3 id="form-heading">Submit New Ticket</h3>
                             <form id="new-ticket-form" novalidate>
                                 <div class="field">
-                                    <label for="ticket-title"> Title</label>
+                                    <label for="ticket-title">Title</label>
                                     <input id="ticket-title" name="title" type="text" required aria-describedby="ticket-title-error" autocomplete="off" />
                                     <p id="ticket-title-error" role="alert" aria-live="assertive"></p>
                                 </div>
@@ -101,7 +101,7 @@
                             <button type="button" id="dismiss-load-error-btn">Dismiss</button>
                           </div>
                           <!-- Tickets List-->
-                           <ul id="ticket-list" aria-labelledby="Support tickets">
+                           <ul id="ticket-list" aria-label="Support tickets" role="list">
                                 <!-- Tickets rendered here-->
                            </ul>
                            <!-- Empty State-->
@@ -117,6 +117,9 @@
                 </div>
             </main>
         </div>
-
+        <footer>
+            <small> Loyola University Chicago — Spring 2026 COMP424 Project</small>
+        </footer>
+        <script src="js/app.js" defer></script>
     </body>
 </html>
