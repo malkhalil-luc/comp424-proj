@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content = "width=device-width, initial-scale=1"/>
+        <title> Internal Employee Portal</title>
+        <link rel="stylesheet" href="css/style.css" />
+    </head>
+    <body>
+        <!-----------------------------Top Bar------------------------------------>
+         <header class = "top-bar">
+            <p class="site-title"> Internal Employee Portal</p>
+        <!------------- Post-MVP: widgets (date time, notifications ..etc)-------->
+            <div class="top-bar-widets" aria-label="Header widgets">
+        <!--------------Renders by js in post MVP--------------------------------->
+            </div>
+         </header>
+        <!----------------------- UI Structure------------------------------------>
+        <div class="ui-structure">
+        <!---------------- Sidebar navigation menu-------------------------------->
+            <nav class="sidebar" aria-label="Main navigation">
+                <ul class="nav-list" role="list">
+                    <li>
+                        <a href="#" class="nav-link nav-link--disabled" aria-disabled="true" tabindex="-1">
+                            <img src="assets/icons/layout-dashboard.svg" alt="" class="nav-icon" />
+                            <span class="nav-label">Dashboard</span>
+                        </a>
+                    </li>
+                     <li>
+                        <a href="#" class="nav-link nav-link--disabled" aria-disabled="true" tabindex="-1">
+                            <img src="assets/icons/newspaper.svg" alt="" class="nav-icon" />
+                            <span class="nav-label">News</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link nav-link--disabled" aria-disabled="true" tabindex="-1">
+                            <img src="assets/icons/megaphone.svg" alt="" class="nav-icon" />
+                            <span class="nav-label">Announcements</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link nav-link--disabled" aria-disabled="true" tabindex="-1">
+                            <img src="assets/icons/contact.svg" alt="" class="nav-icon" />
+                            <span class="nav-label"> Directory</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link nav-link--disabled" aria-disabled="true" tabindex="-1">
+                            <img src="assets/icons/calendar-days.svg" alt="" class="nav-icon" />
+                            <span class="nav-label"> Calendar</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link nav-link--active" aria-current="page">
+                            <img src="assets/icons/tickets.svg" alt="" class="nav-icon" />
+                            <span class="nav-label">Support</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        <!------------------------------------- Content Area -------------------------------->
+            <main id="main">
+                <!-- page title-->
+                <h1> Support Tickets</h1>
+                <!--app structure: list panel and details panel side by side on desktop-->
+                <div class="shell">
+                    <!-- left panel: search bar, create ticket button, submitted tickets list-->
+                     <section class="list-panel" aria-labelledby="list-heading">
+                        <h2 id="list-heading" class="sr-only"> Tickets List</h2>
+                        <!-- Search input-->
+                         <div class="list-controls">
+                            <label for="ticket-search"> Search Tickets</label>
+                            <input id="ticket-search" type="search" placeholder="Type to filter..." autocomplete="off" />
+                            <button type="button" id="new-ticket-btn">+ Create New Ticket</button>
+                         </div>
+                         <!-- Ticket form: hidden by default, show when Create ticket clicked-->
+                          <section id="new-ticket-form-section" aria-labelledby="form-heading" hidden >
+                            <h3 id="form-heading"> Submit New Ticket</h3>
+                            <form id="new-ticket-form" novalidate>
+                                <div class="field">
+                                    <label for="ticket-title"> Title</label>
+                                    <input id="ticket-title" name="title" type="text" required aria-describedby="ticket-title-error" autocomplete="off" />
+                                    <p id="ticket-title-error" role="alert" aria-live="assertive"></p>
+                                </div>
+                                <div class="field">
+                                    <label for="ticket-description">Description</label>
+                                    <textarea id="ticket-description" name="description" required aria-describedby="ticket-description-error"></textarea>
+                                    <p id="ticket-description-error" role="alert" aria-live="assertive"></p>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit">Submit</button>
+                                    <button type="button" id="cancel-ticket-btn">Cancel</button>
+                                </div>
+                                <p id="form-status" role="status" aria-live="polite"></p>
+                                <p id="form-error" role="alert" aria-live="assertive"></p>
+                            </form>
+                          </section>
+                          <!-- Error Banner for load failure-->
+                          <div id="load-error-banner" role="alert" hidden>
+                            <p id="load-error-message"></p>
+                            <button type="button" id="dismiss-load-error-btn">Dismiss</button>
+                          </div>
+                          <!-- Tickets List-->
+                           <ul id="ticket-list" aria-labelledby="Support tickets">
+                                <!-- Tickets rendered here-->
+                           </ul>
+                           <!-- Empty State-->
+                            <p id="empty-state" hidden>No results found.</p>
+                     </section>
+                    <!-- Right panel:ticket details-->
+                     <section class="detail-panel" aria-labelledby="detail-heading">
+                        <h2 id="detail-heading" class="sr-only">Ticket Details</h2>
+                        <div id="ticket-detail">
+                            <p class="detail-placeholder">Select a ticket to view details.</p>
+                        </div>
+                     </section> 
+                </div>
+            </main>
+        </div>
+
+    </body>
+</html>
