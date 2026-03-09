@@ -351,4 +351,101 @@ async function init() {
   render();            // paint the initial UI from state
 }
 
+/* ==============
+   SEARCH FILTER
+================= */
+ticketSearchInput.addEventListener('input', () => {
+  state.ticketQuery = ticketSearchInput.value;
+  render();
+});
+
+/* ======================
+   SHOW/HIDE TICKET FORM
+========================= */
+newTicketBtn.addEventListener('click', () => {
+  state.showNewTicketForm = true;
+  render();
+  // Move focus into the form for accessibility (Week 2)
+  titleInput.focus();
+});
+
+cancelTicketBtn.addEventListener('click', () => {
+  state.showNewTicketForm = false;
+  clearForm();
+  render();
+});
+
+/* =============
+   FORM SUBMIT
+================ */
+newTicketForm.addEventListener('submit', (event) => {
+  event.preventDefault(); // stop browser default submit
+
+  // Clear previous feedback
+  clearFormFeedback();
+
+  // Validate — both fields are required
+  let isValid = true;
+
+  if (titleInput.value.trim() === '') {
+    titleError.textContent  = 'Title is required.';
+    titleInput.classList.add('invalid');
+    titleInput.setAttribute('aria-invalid', 'true');
+    isValid = false;
+  }
+
+  if (descriptionInput.value.trim() === '') {
+    descriptionError.textContent = 'Description is required.';
+    descriptionInput.classList.add('invalid');
+    descriptionInput.setAttribute('aria-invalid', 'true');
+    isValid = false;
+  }
+
+  if (!isValid) return; // stop here if validation failed
+
+  // Build new ticket object
+  const newTicket = {
+    id:           't-' + Date.now(), // unique id from timestamp
+    title:        titleInput.value.trim(),
+    description:  descriptionInput.value.trim(),
+    ticketStatus: 'Open',
+    createdAt:    new Date().toISOString(), // Week 6: ISO 8601 format
+  };
+
+  // Prepend to state — newest ticket appears at the top
+  state.tickets.unshift(newTicket);
+
+  // Save to localStorage
+  saveTickets();
+
+  // Show success message (Week 2: role="status")
+  formStatus.textContent = 'Ticket submitted successfully.';
+
+  // Hide form and reset after short delay so user sees the message
+  setTimeout(() => {
+    state.showNewTicketForm = false;
+    clearForm();
+    render();
+  }, 1500);
+});
+
+// Clears all form inputs and feedback
+function clearForm() {
+  newTicketForm.reset();
+  clearFormFeedback();
+}
+
+// Clears only the feedback messages and invalid states
+function clearFormFeedback() {
+  titleError.textContent       = '';
+  descriptionError.textContent = '';
+  formStatus.textContent       = '';
+  formError.textContent        = '';
+
+  titleInput.classList.remove('invalid');
+  descriptionInput.classList.remove('invalid');
+  titleInput.setAttribute('aria-invalid', 'false');
+  descriptionInput.setAttribute('aria-invalid', 'false');
+}
+
 init();
