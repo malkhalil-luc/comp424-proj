@@ -70,3 +70,23 @@ This commit enables filtering and new ticket submission.
 - Fill both and submit → ticket appears at top of list with Open badge
 - Refresh page → new ticket still there (saved in localStorage)
 - Console → zero errors throughout
+
+---
+
+# Commit 4: Integrate Firebase Firestore as primary data source with localStorage cache fallback
+
+## What does this commit do
+
+- Replaces localStorage as the primary data source with Firestore
+- On first load, if Firestore is empty, it loads data from tickets.json
+- New tickets are written to Firestore and get a real document ID back
+- localStorage kept as an offline cache fallback
+
+## DevTools check
+- Console → zero errors
+- Firebase Console → Firestore → tickets collection has 4 seed documents
+- Create a ticket → new document appears in Firestore instantly
+- Refresh → all tickets still there, loaded from Firestore
+- Application tab → localStorage → portal-tickets-v1 key exists as cache
+
+---

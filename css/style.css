@@ -529,7 +529,9 @@ button {
 #load-error-banner p {
   margin: 0;
 }
-
+#load-error-banner[hidden] {
+  display: none;
+}
 #dismiss-load-error-btn {
   padding: 0.25rem 0.75rem;
   background: transparent;

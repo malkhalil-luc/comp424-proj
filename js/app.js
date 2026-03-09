@@ -1,3 +1,4 @@
+import { db, collection, getDocs, addDoc, orderBy, query } from './firebase.js';
 /* =================
    1. LOADING CHECK
 ==================== */
@@ -81,56 +82,109 @@ sidebarBackdrop.addEventListener('click', () => {
 const STORAGE_KEY = 'portal-tickets-v1';
 
 async function loadTickets() {
-  // Step 1: try localStorage first
+// Always try localStorage first — instant, works offline
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      // Sanity check — make sure it's actually an array with items
       if (Array.isArray(parsed) && parsed.length > 0) {
         state.tickets = parsed;
-        return; // found data, stop here
+        render(); // paint immediately from cache
       }
     }
-  } catch (err) {
-    // localStorage read failed — fall through to fetch
-    console.warn('localStorage read failed:', err);
+  } catch (localErr) {
+    console.warn('localStorage read failed:', localErr);
   }
 
-  // Step 2: nothing in localStorage — fetch tickets.json
+  // Then try Firestore in the background to get fresh data
   try {
-    const res = await fetch('./data/tickets.json');
+    const q = query(
+      collection(db, 'tickets'),
+      orderBy('createdAt', 'desc')
+    );
+    const snapshot = await getDocs(q);
 
-    // fetch() does NOT throw on 404/500 — we must check res.ok
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
+    if (snapshot.empty) {
+      await seedFromJson();
+      return;
     }
 
-    const data = await res.json();
+    state.tickets = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
 
-    // Sanity check — confirm it's an array
-    if (!Array.isArray(data)) {
-      throw new Error('tickets.json is not an array');
-    }
-
-    state.tickets = data;
-
-    // Save to localStorage so next load is instant
-    saveTickets();
+    saveToLocalStorage();
 
   } catch (err) {
-    // Both sources failed — show error banner
-    console.error('Failed to load tickets:', err);
-    state.loadError = true;
+    console.error('Firestore load failed:', err);
+    // If we already loaded from localStorage above, no banner needed
+    if (state.tickets.length === 0) {
+      state.loadError = true;
+    }
   }
+
 }
 
 // Save current tickets array to localStorage
-function saveTickets() {
+// function saveTickets() {
+//   try {
+//     localStorage.setItem(STORAGE_KEY, JSON.stringify(state.tickets));
+//   } catch (err) {
+//     console.warn('localStorage write failed:', err);
+//   }
+// }
+
+// Saves a new ticket to Firestore
+async function saveTicketToFirestore(ticket) {
+  try {
+    const docRef = await addDoc(collection(db, 'tickets'), {
+      title:        ticket.title,
+      description:  ticket.description,
+      ticketStatus: ticket.ticketStatus,
+      createdAt:    ticket.createdAt,
+    });
+    return docRef.id; // return the Firestore-generated id
+  } catch (err) {
+    console.error('Firestore write failed:', err);
+    return null;
+  }
+}
+
+// Saves current tickets array to localStorage as a cache
+function saveToLocalStorage() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state.tickets));
   } catch (err) {
     console.warn('localStorage write failed:', err);
+  }
+}
+
+// Seeds Firestore from tickets.json on first load
+async function seedFromJson() {
+  if (localStorage.getItem('portal-seeded-v1')) return; // already seeded, stop
+
+  try {
+    const res = await fetch('./data/tickets.json');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (!Array.isArray(data)) throw new Error('Not an array');
+
+    for (const ticket of data) {
+      await addDoc(collection(db, 'tickets'), {
+        title:        ticket.title,
+        description:  ticket.description,
+        ticketStatus: ticket.ticketStatus,
+        createdAt:    ticket.createdAt,
+      });
+    }
+
+    localStorage.setItem('portal-seeded-v1', 'true'); // mark as done
+    await loadTickets();
+
+  } catch (err) {
+    console.error('Seeding failed:', err);
+    state.loadError = true;
   }
 }
 
@@ -140,11 +194,11 @@ function saveTickets() {
 ========================== */
 function renderTicketList() {
   // Filter tickets by search query (case-insensitive)
-  const query = state.ticketQuery.toLowerCase().trim();
+  const searchQuery = state.ticketQuery.toLowerCase().trim();
   const visible = state.tickets.filter(ticket =>
-    ticket.title.toLowerCase().includes(query) ||
-    ticket.description.toLowerCase().includes(query)
-  );
+  ticket.title.toLowerCase().includes(searchQuery) ||
+  ticket.description.toLowerCase().includes(searchQuery)
+);
 
   // Clear the list before re-rendering
   ticketList.textContent = '';
@@ -313,7 +367,7 @@ function formatDate(isoString) {
 
 
 /* =====================
-   COMMIT 2 — EVENTS
+   COMMIT 2 interaction
 ======================== */
 
 // Ticket selection — event delegation on the list (Week 5)
@@ -378,7 +432,7 @@ cancelTicketBtn.addEventListener('click', () => {
 /* =============
    FORM SUBMIT
 ================ */
-newTicketForm.addEventListener('submit', (event) => {
+newTicketForm.addEventListener('submit', async (event) => {
   event.preventDefault(); // stop browser default submit
 
   // Clear previous feedback
@@ -405,28 +459,28 @@ newTicketForm.addEventListener('submit', (event) => {
 
   // Build new ticket object
   const newTicket = {
-    id:           't-' + Date.now(), // unique id from timestamp
-    title:        titleInput.value.trim(),
-    description:  descriptionInput.value.trim(),
-    ticketStatus: 'Open',
-    createdAt:    new Date().toISOString(), // Week 6: ISO 8601 format
-  };
+  id:           '',
+  title:        titleInput.value.trim(),
+  description:  descriptionInput.value.trim(),
+  ticketStatus: 'Open',
+  createdAt:    new Date().toISOString(),
+};
 
-  // Prepend to state — newest ticket appears at the top
+// Save to Firestore and get the real id back
+const firestoreId = await saveTicketToFirestore(newTicket);
+if (firestoreId) {
+  newTicket.id = firestoreId;
   state.tickets.unshift(newTicket);
-
-  // Save to localStorage
-  saveTickets();
-
-  // Show success message (Week 2: role="status")
+  saveToLocalStorage();
   formStatus.textContent = 'Ticket submitted successfully.';
-
-  // Hide form and reset after short delay so user sees the message
   setTimeout(() => {
     state.showNewTicketForm = false;
     clearForm();
     render();
   }, 1500);
+} else {
+  formError.textContent = 'Failed to save ticket. Please try again.';
+}
 });
 
 // Clears all form inputs and feedback
