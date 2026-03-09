@@ -1,6 +1,3 @@
-
-
-
 /* =================
    1. LOADING CHECK
 ==================== */
@@ -8,43 +5,43 @@ console.log('app.js loaded');
 
 
 /* ===========
-   2. STATE 
+   2. STATE
 ============== */
 const state = {
-  tickets:           [],     // array of ticket objects loaded from storage/JSON
-  selectedTicketId:  null,   // string id of the selected ticket, or null
-  ticketQuery:       '',     // current search input value
-  showNewTicketForm: false,  // is the create ticket form visible?
-  sidebarCollapsed:  false,  // is the sidebar collapsed to icons only?
-  loadError:         false,  // did tickets fail to load?
+  tickets:           [],    // array of ticket objects loaded from storage/JSON
+  selectedTicketId:  null,  // string id of the selected ticket, or null
+  ticketQuery:       '',    // current search input value
+  showNewTicketForm: false, // is the create ticket form visible?
+  sidebarCollapsed:  false, // is the sidebar collapsed to icons only?
+  loadError:         false, // did tickets fail to load?
 };
 
 
 /* ==================
    3. DOM REFERENCES
 ===================== */
-const appShell            = document.querySelector('.app-shell');
-const sidebarToggle       = document.querySelector('#sidebar-toggle');
-const sidebarBackdrop     = document.querySelector('#sidebar-backdrop');
-const ticketList          = document.querySelector('#ticket-list');
-const ticketDetail        = document.querySelector('#ticket-detail');
-const emptyState          = document.querySelector('#empty-state');
-const loadErrorBanner     = document.querySelector('#load-error-banner');
-const loadErrorMessage    = document.querySelector('#load-error-message');
-const dismissLoadErrorBtn = document.querySelector('#dismiss-load-error-btn');
-const ticketSearchInput   = document.querySelector('#ticket-search');
-const newTicketBtn        = document.querySelector('#new-ticket-btn');
-const newTicketFormSection= document.querySelector('#new-ticket-form-section');
-const newTicketForm       = document.querySelector('#new-ticket-form');
-const cancelTicketBtn     = document.querySelector('#cancel-ticket-btn');
-const titleInput          = document.querySelector('#ticket-title');
-const descriptionInput    = document.querySelector('#ticket-description');
-const titleError          = document.querySelector('#ticket-title-error');
-const descriptionError    = document.querySelector('#ticket-description-error');
-const formStatus          = document.querySelector('#form-status');
-const formError           = document.querySelector('#form-error');
+const appShell             = document.querySelector('.app-shell');
+const sidebarToggle        = document.querySelector('#sidebar-toggle');
+const sidebarBackdrop      = document.querySelector('#sidebar-backdrop');
+const ticketList           = document.querySelector('#ticket-list');
+const ticketDetail         = document.querySelector('#ticket-detail');
+const emptyState           = document.querySelector('#empty-state');
+const loadErrorBanner      = document.querySelector('#load-error-banner');
+const loadErrorMessage     = document.querySelector('#load-error-message');
+const dismissLoadErrorBtn  = document.querySelector('#dismiss-load-error-btn');
+const ticketSearchInput    = document.querySelector('#ticket-search');
+const newTicketBtn         = document.querySelector('#new-ticket-btn');
+const newTicketFormSection = document.querySelector('#new-ticket-form-section');
+const newTicketForm        = document.querySelector('#new-ticket-form');
+const cancelTicketBtn      = document.querySelector('#cancel-ticket-btn');
+const titleInput           = document.querySelector('#ticket-title');
+const descriptionInput     = document.querySelector('#ticket-description');
+const titleError           = document.querySelector('#ticket-title-error');
+const descriptionError     = document.querySelector('#ticket-description-error');
+const formStatus           = document.querySelector('#form-status');
+const formError            = document.querySelector('#form-error');
 
-// Guard, if any critical element is missing, stop and show why
+// Guard — if any critical element is missing, stop and say why
 if (!appShell || !sidebarToggle || !sidebarBackdrop) {
   throw new Error('app.js: Missing critical layout elements — check HTML');
 }
@@ -55,16 +52,16 @@ if (!ticketList || !ticketDetail || !ticketSearchInput) {
 
 /* ==================
    4. SIDEBAR TOGGLE
-=====================*/
+===================== */
 sidebarToggle.addEventListener('click', () => {
   const isMobile = window.innerWidth < 600;
 
   if (isMobile) {
-    // Mobile: toggle overlay
+    // Mobile: slide sidebar in as overlay
     const isOpen = appShell.classList.toggle('sidebar-open');
     sidebarToggle.setAttribute('aria-expanded', String(isOpen));
   } else {
-    // Tablet/Desktop: toggle collapsed
+    // Tablet/Desktop: collapse sidebar to icons only
     state.sidebarCollapsed = !state.sidebarCollapsed;
     appShell.classList.toggle('sidebar-collapsed', state.sidebarCollapsed);
     sidebarToggle.setAttribute('aria-expanded', String(!state.sidebarCollapsed));
@@ -89,29 +86,29 @@ async function loadTickets() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      // Sanity check (Week 6) — make sure it's actually an array
+      // Sanity check — make sure it's actually an array with items
       if (Array.isArray(parsed) && parsed.length > 0) {
         state.tickets = parsed;
-        return; // loaded successfully, stop here
+        return; // found data, stop here
       }
     }
   } catch (err) {
-    // localStorage read failed — log it and fall through to JSON
+    // localStorage read failed — fall through to fetch
     console.warn('localStorage read failed:', err);
   }
 
-  // Step 2: localStorage was empty or failed — fetch tickets.json
+  // Step 2: nothing in localStorage — fetch tickets.json
   try {
     const res = await fetch('./data/tickets.json');
 
-    // Week 6: fetch() does NOT throw on 404/500 — we must check res.ok
+    // fetch() does NOT throw on 404/500 — we must check res.ok
     if (!res.ok) {
       throw new Error(`HTTP ${res.status}`);
     }
 
     const data = await res.json();
 
-    // Sanity check (Week 6) — confirm the shape is what we expect
+    // Sanity check — confirm it's an array
     if (!Array.isArray(data)) {
       throw new Error('tickets.json is not an array');
     }
@@ -128,7 +125,7 @@ async function loadTickets() {
   }
 }
 
-// Save current tickets to localStorage after every change
+// Save current tickets array to localStorage
 function saveTickets() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state.tickets));
@@ -157,16 +154,15 @@ function renderTicketList() {
 
   // Build each ticket row
   visible.forEach(ticket => {
-    // <li>
     const li = document.createElement('li');
 
-    // <button class="ticket-item"> — keyboard accessible and clickable
+    // <button> makes each row keyboard accessible and clickable
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'ticket-item';
-    btn.dataset.id = ticket.id; // Week 5: dataset pattern
+    btn.dataset.id = ticket.id; // used by event delegation in Commit 2
 
-    // Highlight selected ticket
+    // Highlight the selected ticket
     if (ticket.id === state.selectedTicketId) {
       btn.classList.add('is-selected');
       btn.setAttribute('aria-pressed', 'true');
@@ -174,12 +170,12 @@ function renderTicketList() {
       btn.setAttribute('aria-pressed', 'false');
     }
 
-    // Ticket title
+    // Title
     const title = document.createElement('p');
     title.className = 'ticket-item-title';
-    title.textContent = ticket.title; // textContent instead of innerHTML
+    title.textContent = ticket.title; // textContent not innerHTML — safer
 
-    // Ticket meta: status badge + date
+    // Meta row: status badge + date
     const meta = document.createElement('div');
     meta.className = 'ticket-item-meta';
 
@@ -215,18 +211,28 @@ function renderTicketDetail() {
   // Find the selected ticket in state
   const ticket = state.tickets.find(t => t.id === state.selectedTicketId);
 
-  // If ticket no longer exists (e.g. was filtered out), clear selection
+  // Ticket not found — clear selection and show placeholder
   if (!ticket) {
     state.selectedTicketId = null;
     renderTicketDetail();
     return;
   }
 
-  // Build the detail content
-  ticketDetail.innerHTML = ''; // clear previous content
+  // Clear previous content
+  ticketDetail.innerHTML = '';
 
   const content = document.createElement('div');
   content.className = 'ticket-detail-content';
+
+  // Back button — useful on mobile where panels stack vertically
+  const backBtn = document.createElement('button');
+  backBtn.type = 'button';
+  backBtn.id = 'back-btn';
+  backBtn.textContent = '← Back';
+  backBtn.addEventListener('click', () => {
+    state.selectedTicketId = null;
+    render();
+  });
 
   // Header: title + meta
   const header = document.createElement('div');
@@ -254,14 +260,14 @@ function renderTicketDetail() {
   desc.className = 'ticket-detail-description';
   desc.textContent = ticket.description;
 
-  content.append(header, desc);
+  content.append(backBtn, header, desc);
   ticketDetail.append(content);
 }
 
 
 /* ==========================
    8. MAIN RENDER FUNCTION
-=============================*/
+============================= */
 function render() {
   // Show/hide load error banner
   loadErrorBanner.hidden = !state.loadError;
@@ -273,7 +279,7 @@ function render() {
   // Show/hide create ticket form
   newTicketFormSection.hidden = !state.showNewTicketForm;
 
-  // Render the ticket list and detail panel
+  // Re-render list and detail
   renderTicketList();
   renderTicketDetail();
 }
@@ -283,7 +289,7 @@ function render() {
    HELPER FUNCTIONS
 ====================== */
 
-// Maps ticketStatus string to a CSS class name
+// Maps ticketStatus to a CSS class name
 function getStatusClass(status) {
   switch (status) {
     case 'Open':        return 'status-badge--open';
@@ -293,8 +299,8 @@ function getStatusClass(status) {
   }
 }
 
-// Formats an ISO date string into a readable date
-// e.g. "2026-03-01T09:15:00Z" → "Mar 1, 2026"
+// Formats ISO date string to readable date
+// "2026-03-01T09:15:00Z" → "Mar 1, 2026"
 function formatDate(isoString) {
   const d = new Date(isoString);
   if (Number.isNaN(d.getTime())) return '(invalid date)';
@@ -307,10 +313,41 @@ function formatDate(isoString) {
 
 
 /* =====================
+   COMMIT 2 — EVENTS
+======================== */
+
+// Ticket selection — event delegation on the list (Week 5)
+// One listener on the parent survives re-renders
+ticketList.addEventListener('click', (event) => {
+  // closest() finds the .ticket-item button even if user
+  // clicked on the title text or badge inside it
+  const btn = event.target.closest('.ticket-item');
+  if (!btn) return;
+
+  const clickedId = btn.dataset.id;
+
+  // Clicking the already-selected ticket deselects it
+  if (state.selectedTicketId === clickedId) {
+    state.selectedTicketId = null;
+  } else {
+    state.selectedTicketId = clickedId;
+  }
+
+  render();
+});
+
+// Dismiss load error banner
+dismissLoadErrorBtn.addEventListener('click', () => {
+  state.loadError = false;
+  render();
+});
+
+
+/* =====================
    9. INITIALISE APP
 ======================== */
 async function init() {
-  await loadTickets(); // wait for tickets before rendering
+  await loadTickets(); // wait for tickets before first render
   render();            // paint the initial UI from state
 }
 
