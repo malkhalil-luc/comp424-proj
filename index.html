@@ -7,19 +7,33 @@
         <link rel="stylesheet" href="css/style.css" />
     </head>
     <body>
+        <a href="#main" class="skip-link">Skip to main content</a>
         <!-----------------------------Top Bar------------------------------------>
-         <header class = "top-bar">
-            <p class="site-title">Internal Employee Portal</p>
-        <!------------- Post-MVP: widgets (date time, notifications ..etc)-------->
-            <div class="top-bar-widgets" aria-label="Header widgets">
-        <!--------------Renders by js in post MVP--------------------------------->
+
+         <header class="top-bar">
+            <div class="top-bar-left">
+                <button type="button" class="sidebar-toggle" id="sidebar-toggle"
+                        aria-label="Toggle sidebar" aria-expanded="true">
+                        <img src="assets/icons/menu.svg" alt="" />
+                </button>
+                <p class="site-title">Internal Employee Portal</p>
             </div>
-         </header>
+            <div class="top-bar-widgets" aria-label="Header widgets">
+                <!-- Post-MVP widgets -->
+            </div>
+            </header>
         <!----------------------- UI Structure------------------------------------>
         <div class="app-shell">
+            <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
         <!---------------- Sidebar navigation menu-------------------------------->
             <nav class="sidebar" aria-label="Main navigation">
                 <ul class="nav-list" role="list">
+                    <li>
+                        <a href="#" class="nav-link nav-link--active" aria-current="page">
+                            <img src="assets/icons/tickets.svg" alt="" class="nav-icon" />
+                            <span class="nav-label">Support</span>
+                        </a>
+                    </li>
                     <li>
                         <a href="#" class="nav-link nav-link--disabled" aria-disabled="true" tabindex="-1">
                             <img src="assets/icons/layout-dashboard.svg" alt="" class="nav-icon" />
@@ -50,12 +64,7 @@
                             <span class="nav-label">Calendar</span>
                         </a>
                     </li>
-                    <li>
-                        <a href="#" class="nav-link nav-link--active" aria-current="page">
-                            <img src="assets/icons/tickets.svg" alt="" class="nav-icon" />
-                            <span class="nav-label">Support</span>
-                        </a>
-                    </li>
+
                 </ul>
             </nav>
         <!------------------------------------- Content Area -------------------------------->
@@ -120,6 +129,6 @@
         <footer>
             <small> Loyola University Chicago — Spring 2026 COMP424 Project</small>
         </footer>
-        <script src="js/app.js" defer></script>
+        <script src="js/app2.js" defer></script>
     </body>
 </html>
