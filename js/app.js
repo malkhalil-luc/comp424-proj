@@ -1,59 +1,50 @@
 import { db, collection, getDocs, addDoc, orderBy, query } from './firebase.js';
-/* =================
-   1. LOADING CHECK
-==================== */
+
 console.log('app.js loaded');
 
 
-/* ===========
-   2. STATE
-============== */
 const state = {
-  tickets:           [],    // array of ticket objects loaded from storage/JSON
-  selectedTicketId:  null,  // string id of the selected ticket, or null
-  ticketQuery:       '',    // current search input value
+  tickets: [],    // array of ticket objects loaded from storage/JSON
+  selectedTicketId: null,  // string id of the selected ticket, or null
+  ticketQuery: '',    // current search input value
   showNewTicketForm: false, // is the create ticket form visible?
-  sidebarCollapsed:  false, // is the sidebar collapsed to icons only?
-  loadError:         false, // did tickets fail to load?
+  sidebarCollapsed: false, // is the sidebar collapsed to icons only?
+  loadError: false, // did tickets fail to load?
 };
 
 
-/* ==================
-   3. DOM REFERENCES
-===================== */
-const appShell             = document.querySelector('.app-shell');
-const sidebarToggle        = document.querySelector('#sidebar-toggle');
-const sidebarBackdrop      = document.querySelector('#sidebar-backdrop');
-const ticketList           = document.querySelector('#ticket-list');
-const ticketDetail         = document.querySelector('#ticket-detail');
-const emptyState           = document.querySelector('#empty-state');
-const loadErrorBanner      = document.querySelector('#load-error-banner');
-const loadErrorMessage     = document.querySelector('#load-error-message');
-const dismissLoadErrorBtn  = document.querySelector('#dismiss-load-error-btn');
-const ticketSearchInput    = document.querySelector('#ticket-search');
-const newTicketBtn         = document.querySelector('#new-ticket-btn');
+
+const appShell = document.querySelector('.app-shell');
+const sidebarToggle = document.querySelector('#sidebar-toggle');
+const sidebarBackdrop = document.querySelector('#sidebar-backdrop');
+const ticketList = document.querySelector('#ticket-list');
+const ticketDetail = document.querySelector('#ticket-detail');
+const shell = document.querySelector('.shell');
+const emptyState = document.querySelector('#empty-state');
+const loadErrorBanner = document.querySelector('#load-error-banner');
+const loadErrorMessage = document.querySelector('#load-error-message');
+const dismissLoadErrorBtn = document.querySelector('#dismiss-load-error-btn');
+const ticketSearchInput = document.querySelector('#ticket-search');
+const newTicketBtn = document.querySelector('#new-ticket-btn');
 const newTicketFormSection = document.querySelector('#new-ticket-form-section');
-const newTicketForm        = document.querySelector('#new-ticket-form');
-const cancelTicketBtn      = document.querySelector('#cancel-ticket-btn');
-const titleInput           = document.querySelector('#ticket-title');
-const descriptionInput     = document.querySelector('#ticket-description');
-const titleError           = document.querySelector('#ticket-title-error');
-const descriptionError     = document.querySelector('#ticket-description-error');
-const formStatus           = document.querySelector('#form-status');
-const formError            = document.querySelector('#form-error');
+const newTicketForm = document.querySelector('#new-ticket-form');
+const cancelTicketBtn = document.querySelector('#cancel-ticket-btn');
+const titleInput = document.querySelector('#ticket-title');
+const descriptionInput = document.querySelector('#ticket-description');
+const titleError = document.querySelector('#ticket-title-error');
+const descriptionError = document.querySelector('#ticket-description-error');
+const formStatus = document.querySelector('#form-status');
+const formError = document.querySelector('#form-error');
 
 // Guard — if any critical element is missing, stop and say why
 if (!appShell || !sidebarToggle || !sidebarBackdrop) {
   throw new Error('app.js: Missing critical layout elements — check HTML');
 }
-if (!ticketList || !ticketDetail || !ticketSearchInput) {
+if (!ticketList || !ticketDetail || !shell || !ticketSearchInput) {
   throw new Error('app.js: Missing critical content elements — check HTML');
 }
 
 
-/* ==================
-   4. SIDEBAR TOGGLE
-===================== */
 sidebarToggle.addEventListener('click', () => {
   const isMobile = window.innerWidth < 600;
 
@@ -76,13 +67,10 @@ sidebarBackdrop.addEventListener('click', () => {
 });
 
 
-/* =================
-   5. LOAD TICKETS
-==================== */
 const STORAGE_KEY = 'portal-tickets-v1';
 
 async function loadTickets() {
-// Always try localStorage first — instant, works offline
+  // Always try localStorage first — instant, works offline
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
@@ -103,46 +91,86 @@ async function loadTickets() {
       orderBy('createdAt', 'desc')
     );
     const snapshot = await getDocs(q);
+    const localOnlyTickets = getLocalOnlyTickets();
 
     if (snapshot.empty) {
-      await seedFromJson();
+      const seeded = await seedFromJson();
+      if (seeded) {
+        return;
+      }
+
+      const syncedLocalTickets = localOnlyTickets.length > 0
+        ? await syncLocalOnlyTickets(localOnlyTickets)
+        : [];
+
+      const cachedNonLocalTickets = state.tickets.filter(ticket =>
+        ticket.isLocalOnly !== true && !String(ticket.id).startsWith('local-')
+      );
+
+      state.tickets = sortTicketsByNewest([
+        ...cachedNonLocalTickets,
+        ...syncedLocalTickets,
+      ]);
+
+      if (state.tickets.length === 0) {
+        state.loadError = true;
+      } else {
+        state.loadError = false;
+        saveToLocalStorage();
+      }
+
       return;
     }
 
-    state.tickets = snapshot.docs.map(doc => ({
+
+
+    const remoteTickets = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     }));
 
+    const syncedLocalTickets = localOnlyTickets.length > 0
+      ? await syncLocalOnlyTickets(localOnlyTickets)
+      : [];
+
+    state.tickets = sortTicketsByNewest([
+      ...remoteTickets,
+      ...syncedLocalTickets,
+    ]);
+
+    state.loadError = false;
     saveToLocalStorage();
 
   } catch (err) {
     console.error('Firestore load failed:', err);
-    // If we already loaded from localStorage above, no banner needed
-    if (state.tickets.length === 0) {
+
+    if (state.tickets.length > 0) {
+      return;
+    }
+
+    try {
+      await loadTicketsFromJson();
+    } catch (jsonErr) {
+      console.error('JSON fallback load failed:', jsonErr);
       state.loadError = true;
     }
   }
 
-}
 
-// Save current tickets array to localStorage
-// function saveTickets() {
-//   try {
-//     localStorage.setItem(STORAGE_KEY, JSON.stringify(state.tickets));
-//   } catch (err) {
-//     console.warn('localStorage write failed:', err);
-//   }
-// }
+}
 
 // Saves a new ticket to Firestore
 async function saveTicketToFirestore(ticket) {
+  if (!navigator.onLine) {
+    return null;
+  }
+
   try {
     const docRef = await addDoc(collection(db, 'tickets'), {
-      title:        ticket.title,
-      description:  ticket.description,
+      title: ticket.title,
+      description: ticket.description,
       ticketStatus: ticket.ticketStatus,
-      createdAt:    ticket.createdAt,
+      createdAt: ticket.createdAt,
     });
     return docRef.id; // return the Firestore-generated id
   } catch (err) {
@@ -150,6 +178,48 @@ async function saveTicketToFirestore(ticket) {
     return null;
   }
 }
+
+function createLocalTicketId() {
+  return `local-${Date.now()}`;
+}
+
+function getLocalOnlyTickets(tickets = state.tickets) {
+  return tickets.filter(ticket =>
+    ticket.isLocalOnly === true || String(ticket.id).startsWith('local-')
+  );
+}
+
+function sortTicketsByNewest(tickets) {
+  return [...tickets].sort(
+    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+  );
+}
+
+async function syncLocalOnlyTickets(localOnlyTickets) {
+  const syncedTickets = [];
+
+  for (const ticket of localOnlyTickets) {
+    const firestoreId = await saveTicketToFirestore(ticket);
+
+    if (firestoreId) {
+      const { isLocalOnly, ...syncedTicket } = ticket;
+
+      if (state.selectedTicketId === ticket.id) {
+        state.selectedTicketId = firestoreId;
+      }
+
+      syncedTickets.push({
+        ...syncedTicket,
+        id: firestoreId,
+      });
+    } else {
+      syncedTickets.push(ticket);
+    }
+  }
+
+  return syncedTickets;
+}
+
 
 // Saves current tickets array to localStorage as a cache
 function saveToLocalStorage() {
@@ -160,45 +230,56 @@ function saveToLocalStorage() {
   }
 }
 
+
+async function loadTicketsFromJson() {
+  const res = await fetch('./data/tickets.json');
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+  const data = await res.json();
+  if (!Array.isArray(data)) throw new Error('Not an array');
+
+  state.tickets = data;
+  state.loadError = false;
+  saveToLocalStorage();
+}
+
 // Seeds Firestore from tickets.json on first load
 async function seedFromJson() {
-  if (localStorage.getItem('portal-seeded-v1')) return; // already seeded, stop
-
   try {
     const res = await fetch('./data/tickets.json');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
     const data = await res.json();
     if (!Array.isArray(data)) throw new Error('Not an array');
 
     for (const ticket of data) {
       await addDoc(collection(db, 'tickets'), {
-        title:        ticket.title,
-        description:  ticket.description,
+        title: ticket.title,
+        description: ticket.description,
         ticketStatus: ticket.ticketStatus,
-        createdAt:    ticket.createdAt,
+        createdAt: ticket.createdAt,
       });
     }
 
-    localStorage.setItem('portal-seeded-v1', 'true'); // mark as done
     await loadTickets();
-
+    return true;
   } catch (err) {
     console.error('Seeding failed:', err);
     state.loadError = true;
+    return false;
   }
 }
 
 
-/* =======================
-   6. RENDER TICKET LIST
-========================== */
 function renderTicketList() {
   // Filter tickets by search query (case-insensitive)
   const searchQuery = state.ticketQuery.toLowerCase().trim();
-  const visible = state.tickets.filter(ticket =>
-  ticket.title.toLowerCase().includes(searchQuery) ||
-  ticket.description.toLowerCase().includes(searchQuery)
-);
+  const visible = state.tickets.filter(ticket => {
+    const title = String(ticket.title ?? '').toLowerCase();
+    const description = String(ticket.description ?? '').toLowerCase();
+
+    return title.includes(searchQuery) || description.includes(searchQuery);
+  });
 
   // Clear the list before re-rendering
   ticketList.textContent = '';
@@ -248,9 +329,6 @@ function renderTicketList() {
 }
 
 
-/* ========================
-   7. RENDER TICKET DETAIL
-=========================== */
 function renderTicketDetail() {
   // No ticket selected — show placeholder
   if (!state.selectedTicketId) {
@@ -319,9 +397,6 @@ function renderTicketDetail() {
 }
 
 
-/* ==========================
-   8. MAIN RENDER FUNCTION
-============================= */
 function render() {
   // Show/hide load error banner
   loadErrorBanner.hidden = !state.loadError;
@@ -333,23 +408,22 @@ function render() {
   // Show/hide create ticket form
   newTicketFormSection.hidden = !state.showNewTicketForm;
 
+  shell.classList.toggle('detail-view-active', Boolean(state.selectedTicketId));
+
   // Re-render list and detail
   renderTicketList();
   renderTicketDetail();
 }
 
 
-/* ===================
-   HELPER FUNCTIONS
-====================== */
 
 // Maps ticketStatus to a CSS class name
 function getStatusClass(status) {
   switch (status) {
-    case 'Open':        return 'status-badge--open';
+    case 'Open': return 'status-badge--open';
     case 'In Progress': return 'status-badge--in-progress';
-    case 'Closed':      return 'status-badge--closed';
-    default:            return '';
+    case 'Closed': return 'status-badge--closed';
+    default: return '';
   }
 }
 
@@ -360,15 +434,11 @@ function formatDate(isoString) {
   if (Number.isNaN(d.getTime())) return '(invalid date)';
   return d.toLocaleDateString(undefined, {
     month: 'short',
-    day:   'numeric',
-    year:  'numeric',
+    day: 'numeric',
+    year: 'numeric',
   });
 }
 
-
-/* =====================
-   COMMIT 2 interaction
-======================== */
 
 // Ticket selection — event delegation on the list (Week 5)
 // One listener on the parent survives re-renders
@@ -397,25 +467,18 @@ dismissLoadErrorBtn.addEventListener('click', () => {
 });
 
 
-/* =====================
-   9. INITIALISE APP
-======================== */
 async function init() {
   await loadTickets(); // wait for tickets before first render
   render();            // paint the initial UI from state
 }
 
-/* ==============
-   SEARCH FILTER
-================= */
+
 ticketSearchInput.addEventListener('input', () => {
   state.ticketQuery = ticketSearchInput.value;
   render();
 });
 
-/* ======================
-   SHOW/HIDE TICKET FORM
-========================= */
+
 newTicketBtn.addEventListener('click', () => {
   state.showNewTicketForm = true;
   render();
@@ -429,9 +492,6 @@ cancelTicketBtn.addEventListener('click', () => {
   render();
 });
 
-/* =============
-   FORM SUBMIT
-================ */
 newTicketForm.addEventListener('submit', async (event) => {
   event.preventDefault(); // stop browser default submit
 
@@ -442,7 +502,7 @@ newTicketForm.addEventListener('submit', async (event) => {
   let isValid = true;
 
   if (titleInput.value.trim() === '') {
-    titleError.textContent  = 'Title is required.';
+    titleError.textContent = 'Title is required.';
     titleInput.classList.add('invalid');
     titleInput.setAttribute('aria-invalid', 'true');
     isValid = false;
@@ -459,28 +519,34 @@ newTicketForm.addEventListener('submit', async (event) => {
 
   // Build new ticket object
   const newTicket = {
-  id:           '',
-  title:        titleInput.value.trim(),
-  description:  descriptionInput.value.trim(),
-  ticketStatus: 'Open',
-  createdAt:    new Date().toISOString(),
-};
+    id: '',
+    title: titleInput.value.trim(),
+    description: descriptionInput.value.trim(),
+    ticketStatus: 'Open',
+    createdAt: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
+  };
 
-// Save to Firestore and get the real id back
-const firestoreId = await saveTicketToFirestore(newTicket);
-if (firestoreId) {
-  newTicket.id = firestoreId;
+  // Save to Firestore and get the real id back
+  const firestoreId = await saveTicketToFirestore(newTicket);
+
+  if (firestoreId) {
+    newTicket.id = firestoreId;
+    formStatus.textContent = 'Ticket submitted successfully.';
+  } else {
+    newTicket.id = createLocalTicketId();
+    newTicket.isLocalOnly = true;
+    formStatus.textContent = 'Ticket saved locally. Firebase is unavailable.';
+  }
+
   state.tickets.unshift(newTicket);
+  state.selectedTicketId = newTicket.id;
   saveToLocalStorage();
-  formStatus.textContent = 'Ticket submitted successfully.';
+
   setTimeout(() => {
     state.showNewTicketForm = false;
     clearForm();
     render();
   }, 1500);
-} else {
-  formError.textContent = 'Failed to save ticket. Please try again.';
-}
 });
 
 // Clears all form inputs and feedback
@@ -491,10 +557,10 @@ function clearForm() {
 
 // Clears only the feedback messages and invalid states
 function clearFormFeedback() {
-  titleError.textContent       = '';
+  titleError.textContent = '';
   descriptionError.textContent = '';
-  formStatus.textContent       = '';
-  formError.textContent        = '';
+  formStatus.textContent = '';
+  formError.textContent = '';
 
   titleInput.classList.remove('invalid');
   descriptionInput.classList.remove('invalid');
