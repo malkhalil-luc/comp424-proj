@@ -4,9 +4,10 @@ import {
   ticketList,
 } from '../dom.js';
 import {
+  getFilteredTickets,
   getSelectedTicket,
   getVisibleTickets,
-} from '../selectors/tickets-selectors.js';
+} from '../state.js';
 
 function getStatusClass(status) {
   switch (status) {
@@ -33,12 +34,17 @@ function formatDate(isoString) {
 }
 
 export function renderTicketList(state) {
-  const visible = getVisibleTickets(state);
+  const visible = getVisibleTickets();
+  console.log(getFilteredTickets());
 
   ticketList.textContent = '';
   emptyState.hidden = visible.length > 0;
+  emptyState.textContent = state.query.trim() === ''
+    ? 'No tickets available.'
+    : 'No results found.';
 
   visible.forEach(ticket => {
+
     const li = document.createElement('li');
 
     const btn = document.createElement('button');
@@ -46,7 +52,7 @@ export function renderTicketList(state) {
     btn.className = 'ticket-item';
     btn.dataset.id = ticket.id;
 
-    if (ticket.id === state.selectedTicketId) {
+    if (ticket.id === state.selectedId) {
       btn.classList.add('is-selected');
       btn.setAttribute('aria-pressed', 'true');
     } else {
@@ -75,7 +81,7 @@ export function renderTicketList(state) {
 }
 
 export function renderTicketDetail(state, onBack) {
-  const ticket = getSelectedTicket(state);
+  const ticket = getSelectedTicket();
 
   if (!ticket) {
     ticketDetail.innerHTML = '';

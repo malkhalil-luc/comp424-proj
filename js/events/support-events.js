@@ -3,7 +3,6 @@ import {
   newTicketBtn,
   newTicketForm,
   ticketList,
-  ticketSearchInput,
   titleInput,
   titleError,
   descriptionInput,
@@ -11,7 +10,7 @@ import {
   formStatus,
   formError,
 } from '../dom.js';
-import { createTicket, persistTickets } from '../data/tickets-data.js';
+import { createTicket, persistTickets } from '../api.js';
 
 function clearFormFeedback() {
   titleError.textContent = '';
@@ -37,17 +36,12 @@ export function bindSupportEvents(state, render) {
 
     const clickedId = btn.dataset.id;
 
-    if (state.selectedTicketId === clickedId) {
-      state.selectedTicketId = null;
+    if (state.selectedId === clickedId) {
+      state.selectedId = null;
     } else {
-      state.selectedTicketId = clickedId;
+      state.selectedId = clickedId;
     }
 
-    render();
-  });
-
-  ticketSearchInput.addEventListener('input', () => {
-    state.ticketQuery = ticketSearchInput.value;
     render();
   });
 
@@ -103,7 +97,7 @@ export function bindSupportEvents(state, render) {
     }
 
     state.tickets.unshift(savedTicket);
-    state.selectedTicketId = savedTicket.id;
+    state.selectedId = savedTicket.id;
     persistTickets(state.tickets);
 
     setTimeout(() => {

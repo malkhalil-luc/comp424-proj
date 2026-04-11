@@ -1,92 +1,75 @@
-# Commit 1: state object + DOM references + sidebar toggle
+# Assignment G3
 
-## What does this commit do
+## How to Run
+Run in terminal: 
+```
+python3 -m http.server 4040
+```
+Type in browser: `http://localhost:4040/`
 
-- Sidebar toggle works on all screen sizes
-- Loads tickets from localStorage first, falls back to tickets.json
-- Renders the ticket list with status badges and dates
-- Shows the placeholder in the detail panel
-- Shows error banner if loading fails
-- Shows empty state if search returns nothing
+## Module Map
 
+| Module | Responsibilities |
+| :--- | :---- |
+| **js/main.js** | <li>Application bootstrap</li><li>Binds app events and support events</li><li>Starts the initial data load</li><li>Passes callbacks into the render layer</li> |
+| **js/api.js** | <li>Loads ticket data from Firestore </li><li>Seeds Firestore from data/tickets.json when needed</li><li>Falls back to cached localStorage data and local JSON when live loading fails</li><li>Applies resilience patterns such as timeout, structured errors, retry support, and data validation</li><li>Creates new tickets and persists local-only fallback tickets when Firebase is unavailable</li> |
+| **js/state.js** | <li>Contains the single application state object</li><li>Contains selector functions that derive visible and selected ticket data</li> |
+| **js/render.js** |<li>Orchestrates visible UI states.</li><li>Renders loading, error, stale-data, empty, and success states</li><li>Mounts the extracted SearchBar component</li><li>Delegates ticket list and detail rendering to the support render module</li> |
+| **js/dom.js** | <li>Centralizes DOM element references used across the app</li> |
+| **js/render/support-render.js** | <li>Renders the support ticket list and the selected ticket detail panel.</li> |
+| **js/events/app-events.js** | <li>Handles shell-level UI events such as sidebar toggle and backdrop behavior</li> |
+| **js/events/support-events.js** | <li>Handles support feature events such as ticket selection, form submission, and ticket creation flow.</li> |
+| **js/components/search-bar.js** | <li>Extracted component for search input and clear action</li><li>Receives data and callbacks through arguments instead of importing state or render logic</li> |
+| **js/data/storage.js** | <li>Reads and writes cached ticket data and cache timestamps in localStorage</li> |
+| **js/firebase.js** | <li>Initializes Firebase and exports Firestore helpers used by api.js</li> |
 
-## DevTools checks 
+## Component Contract
+- **SearchBar**
+```
+// Component: SearchBar
+// Input: { query, onInput, onClear }
+// Output: DOM nodes mounted inside `container`
+// Events: onInput(value), onClear()
+// Dependencies: none
 
-- Console: app.js loaded appears, zero errors
-- Network tab: tickets.json returns 200 OK 
-- Ticket list:  4 tickets appear with status badges and dates
-- Application tab → localStorage — portal-tickets-v1 key exists after first load
-- Sidebar toggle — works on desktop (collapses) and mobile (overlay)
+```
+## Resilience Patterns Applied
+The following resilience patterns applied in js/api.js:
 
----
+- Timeout with AbortController
+    - fetchTicketsJson() uses an AbortController with a timeout to stop slow JSON requests.
+    - Firestore loading is also wrapped with withTimeout(...) so a slow request does not hang forever
 
-# Commit 2: Enable ticket selection to display ticket details
+- Structured error messages
+    - ApiError, toStructuredError(...), and toUserMessage(...) classify errors into categories such as:
+        - timeout, network, HTTP, parse, validation, unknown
 
-## What does this commit do
-This commit adds ticket selection interaction.
+- Retry action in the UI
+    - The visible Try Again button in the error banner calls the same load path again from main.js.
 
-- Add selectedTicketId state (initially null)
-- Add click handler to each ticket row
-- Update detail panel to render the selected ticket's details when selectedTicketId is set
-- Highlight the selected ticket row in the list
-- Add a "Back" / deselect action that resets selectedTicketId to null and returns panel to placeholder
+- Data validation
+    - isValidTicket(...) and assertValidTickets(...) validate the ticket shape before rendering fetched data.
 
+- Stale-data notice
+    - When live loading fails but cached data is available, the app shows a stale-data message indicating cached data is being served.
 
-## DevTools check
+## Current Feature Status
+- **Working now:**
+    - Support ticket list rendering
+    - Ticket detail panel
+    - Search filtering
+    - Empty state when no tickets match the current query
+    - Loading state during ticket fetch
+    - Error state with visible retry button
+    - Stale-data notice when cached data is shown
+    - Firestore as the live data source
+    - Local JSON seed/fallback
+    - localStorage cache fallback
+    - New ticket form with validation
+    - Local-only ticket save fallback when Firebase is unavailable
+    - Responsive sidebar and mobile detail behavior
 
-- Click any ticket → detail panel fills with that ticket's info
-- Click same ticket again → detail panel returns to placeholder
-- Click a different ticket → detail panel switches
-- Selected row has blue border + light blue background
-- On mobile → Back button appears, clicking it clears selection
-- Console → zero errors
-
----
-# Commit 3: Add ticket creation form with localStorage persistence and search filter
-
-## What does this commit do
-This commit enables filtering and new ticket submission. 
-
-- Add showNewTicketForm, status, successMessage, errorMessage states
-- Add "Create New Ticket" button and ticket creation form with required fields
-- On "Cancel": hide form
-- On "Submit" with empty fields: show inline validation error, form stays open
-- On "Submit" with valid data: write to localStorage; if success, prepend ticket, show success message, hide form; if write fails, show error inline, ticket not added
-- Add ticketQuery state (initially "")
-- Add a search input field above the ticket list
-- Filter the displayed ticket list in real time based on ticketQuery
-- Display "No results found" message when no tickets match the input
-- Clearing the search input restores the full list
-
-## DevTools check
-
-- Type in search box → list filters in real time
-- Clear search → all tickets return
-- Type something with no match → empty state message appears
-- Click + Create New Ticket → form slides into view, cursor lands in Title field
-- Click Cancel → form hides, inputs cleared
-- Submit empty form → both error messages appear in red
-- Fill in title only → only description error appears
-- Fill both and submit → ticket appears at top of list with Open badge
-- Refresh page → new ticket still there (saved in localStorage)
-- Console → zero errors throughout
-
----
-
-# Commit 4: Integrate Firebase Firestore as primary data source with localStorage cache fallback
-
-## What does this commit do
-
-- Replaces localStorage as the primary data source with Firestore
-- On first load, if Firestore is empty, it loads data from tickets.json
-- New tickets are written to Firestore and get a real document ID back
-- localStorage kept as an offline cache fallback
-
-## DevTools check
-- Console → zero errors
-- Firebase Console → Firestore → tickets collection has 4 seed documents
-- Create a ticket → new document appears in Firestore instantly
-- Refresh → all tickets still there, loaded from Firestore
-- Application tab → localStorage → portal-tickets-v1 key exists as cache
-
----
+- **Still limited / in progress:**
+    - Full offline startup after a hard refresh is not guaranteed because Firebase still depends on external module loading.
+    - The branch is intentionally scoped to the Support feature for the G3 assignment.
+    - Other portal sections were removed from scope for this assignment to match the assignment handout requirements .

@@ -377,35 +377,6 @@ body {
   margin-bottom: 1rem;
 }
 
-.list-controls label {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-}
-
-.list-controls input[type="search"] {
-  flex: 1;
-  min-width: 8rem;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-family: inherit;
-  background-color: var(--color-page-bg);
-  color: var(--color-text-primary);
-  transition: border-color var(--transition-fast),
-    box-shadow var(--transition-fast);
-}
-
-.list-controls input[type="search"]:focus {
-  outline: none;
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px rgba(82, 143, 179, 0.15);
-}
-
 button {
   cursor: pointer;
   font-family: inherit;
@@ -451,7 +422,7 @@ button {
   display: none;
 }
 
-#dismiss-load-error-btn {
+#retry-load-btn {
   padding: 0.25rem 0.75rem;
   background: transparent;
   border: 1px solid var(--color-error);
@@ -465,10 +436,25 @@ button {
     color var(--transition-fast);
 }
 
-#dismiss-load-error-btn:hover {
+#retry-load-btn:hover {
   background-color: var(--color-error);
   color: #ffffff;
 }
+
+#stale-data-banner {
+  margin: 0 0 1rem 0;
+  padding: 0.75rem 1rem;
+  background-color: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 0.5rem;
+  color: #9a3412;
+  font-size: 0.875rem;
+}
+
+#stale-data-banner[hidden] {
+  display: none;
+}
+
 
 #new-ticket-form-section {
   background-color: var(--color-page-bg);
@@ -773,4 +759,53 @@ footer {
   padding: 2rem 1rem;
   color: var(--color-text-muted);
   font-size: 0.875rem;
+}
+
+#search-bar-container {
+  flex: 1;
+  min-width: 12rem;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.search-bar input[type="search"] {
+  flex: 1;
+  min-width: 8rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  background-color: var(--color-page-bg);
+  color: var(--color-text-primary);
+  transition: border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.search-bar input[type="search"]:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(82, 143, 179, 0.15);
+}
+
+.search-clear-btn {
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  transition: background-color var(--transition-fast);
+}
+
+.search-clear-btn:hover:enabled {
+  background-color: var(--color-page-bg);
+}
+
+.search-clear-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }

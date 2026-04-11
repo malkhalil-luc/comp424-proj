@@ -26,37 +26,37 @@
         <nav class="sidebar" aria-label="Main navigation">
             <ul class="nav-list" role="list">
                 <li>
-                    <a href="#support" class="nav-link nav-link--active" data-route="support" aria-current="page">
+                    <a href="#support" class="nav-link nav-link--active" aria-current="page">
                         <img src="assets/icons/tickets.svg" alt="" class="nav-icon" />
                         <span class="nav-label">Support</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link" data-route="dashboard">
+                    <a href="#" class="nav-link nav-link--disabled" aria-disabled="true" tabindex="-1">
                         <img src="assets/icons/layout-dashboard.svg" alt="" class="nav-icon" />
                         <span class="nav-label">Dashboard</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link" data-route="news">
+                    <a href="#" class="nav-link nav-link--disabled" aria-disabled="true" tabindex="-1">
                         <img src="assets/icons/newspaper.svg" alt="" class="nav-icon" />
                         <span class="nav-label">News</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link" data-route="announcements">
+                    <a href="#" class="nav-link nav-link--disabled" aria-disabled="true" tabindex="-1">
                         <img src="assets/icons/megaphone.svg" alt="" class="nav-icon" />
                         <span class="nav-label">Announcements</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link" data-route="directory">
+                    <a href="#" class="nav-link nav-link--disabled" aria-disabled="true" tabindex="-1">
                         <img src="assets/icons/contact.svg" alt="" class="nav-icon" />
                         <span class="nav-label">Directory</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link" data-route="calendar">
+                    <a href="#" class="nav-link nav-link--disabled" aria-disabled="true" tabindex="-1">
                         <img src="assets/icons/calendar-days.svg" alt="" class="nav-icon" />
                         <span class="nav-label">Calendar</span>
                     </a>
@@ -69,11 +69,12 @@
             <div class="shell">
                 <section class="list-panel" aria-labelledby="list-heading">
                     <h2 id="list-heading" class="sr-only">Tickets List</h2>
+
                     <div class="list-controls">
-                        <label for="ticket-search">Search Tickets</label>
-                        <input id="ticket-search" type="search" placeholder="Type to filter..." autocomplete="off" />
+                        <div id="search-bar-container"></div>
                         <button type="button" id="new-ticket-btn">+ Create New Ticket</button>
                     </div>
+
                     <section id="new-ticket-form-section" aria-labelledby="form-heading" hidden>
                         <h3 id="form-heading">Submit New Ticket</h3>
                         <form id="new-ticket-form" novalidate>
@@ -97,13 +98,17 @@
                             <p id="form-error" role="alert" aria-live="assertive"></p>
                         </form>
                     </section>
+
                     <div id="load-error-banner" role="alert" hidden>
                         <p id="load-error-message"></p>
-                        <button type="button" id="dismiss-load-error-btn">Dismiss</button>
+                        <button type="button" id="retry-load-btn">Try Again</button>
                     </div>
+                    <p id="stale-data-banner" role="status" hidden></p>
                     <ul id="ticket-list" aria-label="Support tickets" role="list">
                     </ul>
                     <p id="empty-state" hidden>No results found.</p>
+
+
                 </section>
                 <section class="detail-panel" aria-labelledby="detail-heading">
                     <h2 id="detail-heading" class="sr-only">Ticket Details</h2>

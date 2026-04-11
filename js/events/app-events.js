@@ -1,7 +1,5 @@
 import {
   appShell,
-  dismissLoadErrorBtn,
-  navLinks,
   sidebarBackdrop,
   sidebarToggle,
 } from '../dom.js';
@@ -23,18 +21,5 @@ export function bindAppEvents(state, render) {
   sidebarBackdrop.addEventListener('click', () => {
     appShell.classList.remove('sidebar-open');
     sidebarToggle.setAttribute('aria-expanded', 'false');
-  });
-
-  navLinks.forEach(link => {
-    link.addEventListener('click', (event) => {
-      event.preventDefault();
-      state.route = link.dataset.route;
-      render();
-    });
-  });
-
-  dismissLoadErrorBtn.addEventListener('click', () => {
-    state.loadError = false;
-    render();
   });
 }
