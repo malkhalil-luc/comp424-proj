@@ -13,16 +13,13 @@ import {
 } from './dom.js';
 import { loadTicketsData } from './data/tickets-data.js';
 
-
 if (!appShell || !sidebarToggle || !sidebarBackdrop) {
-  throw new Error('app.js: Missing critical layout elements — check HTML');
+  throw new Error('main.js: Missing critical layout elements — check HTML');
 }
+
 if (!ticketList || !ticketDetail || !shell || !ticketSearchInput) {
-  throw new Error('app.js: Missing critical content elements — check HTML');
+  throw new Error('main.js: Missing critical content elements — check HTML');
 }
-
-
-const STORAGE_KEY = 'portal-tickets-v1';
 
 function render() {
   renderApp(state, {
