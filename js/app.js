@@ -1,18 +1,13 @@
 import { db, collection, getDocs, addDoc, orderBy, query } from './firebase.js';
 
-console.log('app.js loaded');
-
-
 const state = {
-  tickets: [],    // array of ticket objects loaded from storage/JSON
-  selectedTicketId: null,  // string id of the selected ticket, or null
-  ticketQuery: '',    // current search input value
-  showNewTicketForm: false, // is the create ticket form visible?
-  sidebarCollapsed: false, // is the sidebar collapsed to icons only?
-  loadError: false, // did tickets fail to load?
+  tickets: [],
+  selectedTicketId: null,
+  ticketQuery: '',
+  showNewTicketForm: false,
+  sidebarCollapsed: false,
+  loadError: false,
 };
-
-
 
 const appShell = document.querySelector('.app-shell');
 const sidebarToggle = document.querySelector('#sidebar-toggle');
@@ -36,7 +31,6 @@ const descriptionError = document.querySelector('#ticket-description-error');
 const formStatus = document.querySelector('#form-status');
 const formError = document.querySelector('#form-error');
 
-// Guard — if any critical element is missing, stop and say why
 if (!appShell || !sidebarToggle || !sidebarBackdrop) {
   throw new Error('app.js: Missing critical layout elements — check HTML');
 }
@@ -44,47 +38,41 @@ if (!ticketList || !ticketDetail || !shell || !ticketSearchInput) {
   throw new Error('app.js: Missing critical content elements — check HTML');
 }
 
-
 sidebarToggle.addEventListener('click', () => {
   const isMobile = window.innerWidth < 600;
 
   if (isMobile) {
-    // Mobile: slide sidebar in as overlay
     const isOpen = appShell.classList.toggle('sidebar-open');
     sidebarToggle.setAttribute('aria-expanded', String(isOpen));
   } else {
-    // Tablet/Desktop: collapse sidebar to icons only
     state.sidebarCollapsed = !state.sidebarCollapsed;
     appShell.classList.toggle('sidebar-collapsed', state.sidebarCollapsed);
     sidebarToggle.setAttribute('aria-expanded', String(!state.sidebarCollapsed));
   }
 });
 
-// Clicking the backdrop closes the mobile sidebar
 sidebarBackdrop.addEventListener('click', () => {
   appShell.classList.remove('sidebar-open');
   sidebarToggle.setAttribute('aria-expanded', 'false');
 });
 
-
 const STORAGE_KEY = 'portal-tickets-v1';
 
 async function loadTickets() {
-  // Always try localStorage first — instant, works offline
+
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
         state.tickets = parsed;
-        render(); // paint immediately from cache
+        render();
       }
     }
   } catch (localErr) {
     console.warn('localStorage read failed:', localErr);
   }
 
-  // Then try Firestore in the background to get fresh data
   try {
     const q = query(
       collection(db, 'tickets'),
@@ -122,8 +110,6 @@ async function loadTickets() {
       return;
     }
 
-
-
     const remoteTickets = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
@@ -155,11 +141,9 @@ async function loadTickets() {
       state.loadError = true;
     }
   }
-
-
 }
 
-// Saves a new ticket to Firestore
+
 async function saveTicketToFirestore(ticket) {
   if (!navigator.onLine) {
     return null;
@@ -172,7 +156,7 @@ async function saveTicketToFirestore(ticket) {
       ticketStatus: ticket.ticketStatus,
       createdAt: ticket.createdAt,
     });
-    return docRef.id; // return the Firestore-generated id
+    return docRef.id;
   } catch (err) {
     console.error('Firestore write failed:', err);
     return null;
@@ -220,8 +204,6 @@ async function syncLocalOnlyTickets(localOnlyTickets) {
   return syncedTickets;
 }
 
-
-// Saves current tickets array to localStorage as a cache
 function saveToLocalStorage() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state.tickets));
@@ -230,27 +212,25 @@ function saveToLocalStorage() {
   }
 }
 
-
-async function loadTicketsFromJson() {
+async function fetchTicketsJson() {
   const res = await fetch('./data/tickets.json');
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
   const data = await res.json();
   if (!Array.isArray(data)) throw new Error('Not an array');
 
-  state.tickets = data;
+  return data;
+}
+
+async function loadTicketsFromJson() {
+  state.tickets = await fetchTicketsJson();
   state.loadError = false;
   saveToLocalStorage();
 }
 
-// Seeds Firestore from tickets.json on first load
 async function seedFromJson() {
   try {
-    const res = await fetch('./data/tickets.json');
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-    const data = await res.json();
-    if (!Array.isArray(data)) throw new Error('Not an array');
+    const data = await fetchTicketsJson();
 
     for (const ticket of data) {
       await addDoc(collection(db, 'tickets'), {
@@ -270,9 +250,8 @@ async function seedFromJson() {
   }
 }
 
-
 function renderTicketList() {
-  // Filter tickets by search query (case-insensitive)
+
   const searchQuery = state.ticketQuery.toLowerCase().trim();
   const visible = state.tickets.filter(ticket => {
     const title = String(ticket.title ?? '').toLowerCase();
@@ -281,23 +260,18 @@ function renderTicketList() {
     return title.includes(searchQuery) || description.includes(searchQuery);
   });
 
-  // Clear the list before re-rendering
   ticketList.textContent = '';
 
-  // Show empty state if no results
   emptyState.hidden = visible.length > 0;
 
-  // Build each ticket row
   visible.forEach(ticket => {
     const li = document.createElement('li');
 
-    // <button> makes each row keyboard accessible and clickable
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'ticket-item';
-    btn.dataset.id = ticket.id; // used by event delegation in Commit 2
+    btn.dataset.id = ticket.id;
 
-    // Highlight the selected ticket
     if (ticket.id === state.selectedTicketId) {
       btn.classList.add('is-selected');
       btn.setAttribute('aria-pressed', 'true');
@@ -305,12 +279,11 @@ function renderTicketList() {
       btn.setAttribute('aria-pressed', 'false');
     }
 
-    // Title
     const title = document.createElement('p');
     title.className = 'ticket-item-title';
-    title.textContent = ticket.title; // textContent not innerHTML — safer
+    title.textContent = ticket.title;
 
-    // Meta row: status badge + date
+
     const meta = document.createElement('div');
     meta.className = 'ticket-item-meta';
 
@@ -328,9 +301,8 @@ function renderTicketList() {
   });
 }
 
-
 function renderTicketDetail() {
-  // No ticket selected — show placeholder
+
   if (!state.selectedTicketId) {
     ticketDetail.innerHTML = '';
     const placeholder = document.createElement('p');
@@ -340,23 +312,19 @@ function renderTicketDetail() {
     return;
   }
 
-  // Find the selected ticket in state
   const ticket = state.tickets.find(t => t.id === state.selectedTicketId);
 
-  // Ticket not found — clear selection and show placeholder
   if (!ticket) {
     state.selectedTicketId = null;
     renderTicketDetail();
     return;
   }
 
-  // Clear previous content
   ticketDetail.innerHTML = '';
 
   const content = document.createElement('div');
   content.className = 'ticket-detail-content';
 
-  // Back button — useful on mobile where panels stack vertically
   const backBtn = document.createElement('button');
   backBtn.type = 'button';
   backBtn.id = 'back-btn';
@@ -366,7 +334,6 @@ function renderTicketDetail() {
     render();
   });
 
-  // Header: title + meta
   const header = document.createElement('div');
   header.className = 'ticket-detail-header';
 
@@ -387,7 +354,6 @@ function renderTicketDetail() {
   meta.append(badge, date);
   header.append(titleEl, meta);
 
-  // Description
   const desc = document.createElement('p');
   desc.className = 'ticket-detail-description';
   desc.textContent = ticket.description;
@@ -396,28 +362,23 @@ function renderTicketDetail() {
   ticketDetail.append(content);
 }
 
-
 function render() {
-  // Show/hide load error banner
+
   loadErrorBanner.hidden = !state.loadError;
   if (state.loadError) {
     loadErrorMessage.textContent =
       'Could not load tickets. Showing default data if available.';
   }
 
-  // Show/hide create ticket form
   newTicketFormSection.hidden = !state.showNewTicketForm;
 
   shell.classList.toggle('detail-view-active', Boolean(state.selectedTicketId));
 
-  // Re-render list and detail
   renderTicketList();
   renderTicketDetail();
 }
 
 
-
-// Maps ticketStatus to a CSS class name
 function getStatusClass(status) {
   switch (status) {
     case 'Open': return 'status-badge--open';
@@ -427,8 +388,6 @@ function getStatusClass(status) {
   }
 }
 
-// Formats ISO date string to readable date
-// "2026-03-01T09:15:00Z" → "Mar 1, 2026"
 function formatDate(isoString) {
   const d = new Date(isoString);
   if (Number.isNaN(d.getTime())) return '(invalid date)';
@@ -439,18 +398,13 @@ function formatDate(isoString) {
   });
 }
 
-
-// Ticket selection — event delegation on the list (Week 5)
-// One listener on the parent survives re-renders
 ticketList.addEventListener('click', (event) => {
-  // closest() finds the .ticket-item button even if user
-  // clicked on the title text or badge inside it
+
   const btn = event.target.closest('.ticket-item');
   if (!btn) return;
 
   const clickedId = btn.dataset.id;
 
-  // Clicking the already-selected ticket deselects it
   if (state.selectedTicketId === clickedId) {
     state.selectedTicketId = null;
   } else {
@@ -460,29 +414,25 @@ ticketList.addEventListener('click', (event) => {
   render();
 });
 
-// Dismiss load error banner
 dismissLoadErrorBtn.addEventListener('click', () => {
   state.loadError = false;
   render();
 });
 
-
 async function init() {
-  await loadTickets(); // wait for tickets before first render
-  render();            // paint the initial UI from state
+  await loadTickets();
+  render();
 }
-
 
 ticketSearchInput.addEventListener('input', () => {
   state.ticketQuery = ticketSearchInput.value;
   render();
 });
 
-
 newTicketBtn.addEventListener('click', () => {
   state.showNewTicketForm = true;
   render();
-  // Move focus into the form for accessibility (Week 2)
+
   titleInput.focus();
 });
 
@@ -493,12 +443,9 @@ cancelTicketBtn.addEventListener('click', () => {
 });
 
 newTicketForm.addEventListener('submit', async (event) => {
-  event.preventDefault(); // stop browser default submit
-
-  // Clear previous feedback
+  event.preventDefault();
   clearFormFeedback();
 
-  // Validate — both fields are required
   let isValid = true;
 
   if (titleInput.value.trim() === '') {
@@ -515,9 +462,8 @@ newTicketForm.addEventListener('submit', async (event) => {
     isValid = false;
   }
 
-  if (!isValid) return; // stop here if validation failed
+  if (!isValid) return;
 
-  // Build new ticket object
   const newTicket = {
     id: '',
     title: titleInput.value.trim(),
@@ -526,7 +472,6 @@ newTicketForm.addEventListener('submit', async (event) => {
     createdAt: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
   };
 
-  // Save to Firestore and get the real id back
   const firestoreId = await saveTicketToFirestore(newTicket);
 
   if (firestoreId) {
@@ -549,13 +494,11 @@ newTicketForm.addEventListener('submit', async (event) => {
   }, 1500);
 });
 
-// Clears all form inputs and feedback
 function clearForm() {
   newTicketForm.reset();
   clearFormFeedback();
 }
 
-// Clears only the feedback messages and invalid states
 function clearFormFeedback() {
   titleError.textContent = '';
   descriptionError.textContent = '';
