@@ -9,19 +9,19 @@ Type in browser: `http://localhost:4040/`
 
 ## Module Map
 
-| Module | Responsibilities |
-| :--- | :---- |
-| **js/main.js** | <li>Application bootstrap</li><li>Binds app events and support events</li><li>Starts the initial data load</li><li>Passes callbacks into the render layer</li> |
-| **js/api.js** | <li>Loads ticket data from Firestore </li><li>Seeds Firestore from data/tickets.json when needed</li><li>Falls back to cached localStorage data and local JSON when live loading fails</li><li>Applies resilience patterns such as timeout, structured errors, retry support, and data validation</li><li>Creates new tickets and persists local-only fallback tickets when Firebase is unavailable</li> |
-| **js/state.js** | <li>Contains the single application state object</li><li>Contains selector functions that derive visible and selected ticket data</li> |
-| **js/render.js** |<li>Orchestrates visible UI states.</li><li>Renders loading, error, stale-data, empty, and success states</li><li>Mounts the extracted SearchBar component</li><li>Delegates ticket list and detail rendering to the support render module</li> |
-| **js/dom.js** | <li>Centralizes DOM element references used across the app</li> |
-| **js/render/support-render.js** | <li>Renders the support ticket list and the selected ticket detail panel.</li> |
-| **js/events/app-events.js** | <li>Handles shell-level UI events such as sidebar toggle and backdrop behavior</li> |
-| **js/events/support-events.js** | <li>Handles support feature events such as ticket selection, form submission, and ticket creation flow.</li> |
-| **js/components/search-bar.js** | <li>Extracted component for search input and clear action</li><li>Receives data and callbacks through arguments instead of importing state or render logic</li> |
-| **js/data/storage.js** | <li>Reads and writes cached ticket data and cache timestamps in localStorage</li> |
-| **js/firebase.js** | <li>Initializes Firebase and exports Firestore helpers used by api.js</li> |
+| Module  | Responsibilities |
+|  :---  | :---- |
+| **js/main.js** | Application bootstrap. Binds app events and support events, starts the initial data load, and passes callbacks into the render layer |
+| **js/api.js** | Loads ticket data from Firestore, seeds Firestore from data/tickets.json when needed, falls back to cached localStorage data and local JSON when live loading fails, applies resilience patterns such as timeout, structured errors, retry support, data validation, and Promise.allSettled(), and creates new tickets with local-only fallback when Firebase is unavailable |
+| **js/state.js** | Contains the single shared state object with named fields such as query, activeFilter, selectedId, sortBy, isLoading, error, staleNotice, and lastLoadedAt. Contains selector functions such as getFilteredTickets(), getSortedTickets(), getVisibleTickets(), and getSelectedTicket(). Contains no DOM references or rendering logic |
+| **js/render.js** |Orchestrates visible UI states, renders loading, error, stale-data, empty, and success states, mounts the extracted SearchBar component, and delegates ticket list/detail rendering to the support render module |
+| **js/dom.js** | Centralizes DOM element references used across the app |
+| **js/render/support-render.js** | Renders the support ticket list and selected ticket detail panel using derived data from selectors. |
+| **js/events/app-events.js** | Handles shell-level UI events such as sidebar toggle and backdrop behavior |
+| **js/events/support-events.js** | Handles support feature events such as ticket selection, form submission, and ticket creation flow |
+| **js/components/search-bar.js** |  Extracted component for search input and clear action. Receives data and callbacks through arguments instead of importing state or render logic. |
+| **js/data/storage.js** | Reads and writes cached ticket data and cache timestamps in localStorage|
+| **js/firebase.js** | Initializes Firebase and exports Firestore helpers used by api.js |
 
 ## Component Contract
 - **SearchBar**
@@ -37,7 +37,7 @@ Type in browser: `http://localhost:4040/`
 The following resilience patterns applied in js/api.js:
 
 - Timeout with AbortController
-    - fetchTicketsJson() uses an AbortController with a timeout to stop slow JSON requests.
+    - createAbortControllerWithTimeout() and fetchTicketsJson() use AbortController to stop slow JSON requests after a reasonable timeout
     - Firestore loading is also wrapped with withTimeout(...) so a slow request does not hang forever
 
 - Structured error messages
@@ -50,8 +50,11 @@ The following resilience patterns applied in js/api.js:
 - Data validation
     - isValidTicket(...) and assertValidTickets(...) validate the ticket shape before rendering fetched data.
 
+- Graceful degradation with Promise.allSettled()
+    - loadFallbackTickets() uses Promise.allSettled() to try cached local data and local JSON fallback when live Firestore loading fails.
+
 - Stale-data notice
-    - When live loading fails but cached data is available, the app shows a stale-data message indicating cached data is being served.
+    - When live loading fails but cached data is available, the app shows a stale-data message indicating cached data is being served and when it was last refreshed. 
 
 ## Current Feature Status
 - **Working now:**
@@ -70,9 +73,8 @@ The following resilience patterns applied in js/api.js:
     - Responsive sidebar and mobile detail behavior
 
 - **Still limited / in progress:**
-    - Full offline startup after a hard refresh is not guaranteed because Firebase still depends on external module loading.
+    - Full offline startup after a hard refresh is not implemented.
     - The branch is intentionally scoped to the Support feature for the G3 assignment.
     - Role-based access for admin and regular users is planned.
     - Other portal sections were removed from scope for this assignment to match the assignment handout requirements .
-    - Firebase Authentication is not implemented in this demo branch, so Firestore access is currently based on project rules.
-    - 
+    - Firebase Authentication is not implemented in this demo branch, so Firestore access is currently based on open project rules.
