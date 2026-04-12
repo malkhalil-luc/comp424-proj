@@ -72,4 +72,7 @@ The following resilience patterns applied in js/api.js:
 - **Still limited / in progress:**
     - Full offline startup after a hard refresh is not guaranteed because Firebase still depends on external module loading.
     - The branch is intentionally scoped to the Support feature for the G3 assignment.
+    - Role-based access for admin and regular users is planned.
     - Other portal sections were removed from scope for this assignment to match the assignment handout requirements .
+    - Firebase Authentication is not implemented in this demo branch, so Firestore access is currently based on project rules.
+    - 
