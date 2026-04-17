@@ -8,11 +8,10 @@ import {
 const DATA_URL = './data/tickets.json';
 const LOAD_TIMEOUT_MS = 8000;
 
-class ApiError extends Error {
-  constructor(code, message) {
-    super(message);
-    this.code = code;
-  }
+function makeError(code, message) {
+  const error = new Error(message);
+  error.code = code;
+  return error;
 }
 
 function createLocalTicketId() {
@@ -34,11 +33,11 @@ function isValidTicket(ticket) {
 
 function assertValidTickets(tickets) {
   if (!Array.isArray(tickets)) {
-    throw new ApiError('validation', 'Ticket data must be an array.');
+    throw makeError('validation', 'Ticket data must be an array.');
   }
 
   if (!tickets.every(isValidTicket)) {
-    throw new ApiError('validation', 'Ticket data is missing required fields.');
+    throw makeError('validation', 'Ticket data is missing required fields.');
   }
 }
 
@@ -68,12 +67,12 @@ function createAbortControllerWithTimeout(timeoutMs) {
   };
 }
 
-function withTimeout(promise, timeoutMs) {
+function waitWithTimeout(promise, timeoutMs) {
   let timerId;
 
   const timeoutPromise = new Promise((_, reject) => {
     timerId = setTimeout(() => {
-      reject(new ApiError('timeout', 'Loading tickets timed out.'));
+      reject(makeError('timeout', 'Loading tickets timed out.'));
     }, timeoutMs);
   });
 
@@ -82,28 +81,28 @@ function withTimeout(promise, timeoutMs) {
   });
 }
 
-function toStructuredError(err) {
-  if (err instanceof ApiError) {
-    return err;
+function getErrorCode(error) {
+  if (error?.code) {
+    return error.code;
   }
 
-  if (err?.name === 'AbortError') {
-    return new ApiError('timeout', 'Loading tickets timed out.');
+  if (error?.name === 'AbortError') {
+    return 'timeout';
   }
 
-  if (err instanceof SyntaxError) {
-    return new ApiError('parse', 'Ticket data could not be parsed.');
+  if (error instanceof SyntaxError) {
+    return 'parse';
   }
 
-  if (err instanceof TypeError) {
-    return new ApiError('network', 'A network error occurred while loading tickets.');
+  if (error instanceof TypeError) {
+    return 'network';
   }
 
-  return new ApiError('unknown', 'Something went wrong while loading tickets.');
+  return 'unknown';
 }
 
-function toUserMessage(error) {
-  switch (error.code) {
+function getErrorMessage(error) {
+  switch (getErrorCode(error)) {
     case 'timeout':
       return 'Loading tickets took too long. Please try again.';
     case 'network':
@@ -140,14 +139,12 @@ async function fetchTicketsJson() {
     });
 
     if (!response.ok) {
-      throw new ApiError('http', `HTTP ${response.status}`);
+      throw makeError('http', `HTTP ${response.status}`);
     }
 
     const data = await response.json();
     assertValidTickets(data);
     return data;
-  } catch (err) {
-    throw toStructuredError(err);
   } finally {
     cleanup();
   }
@@ -167,8 +164,8 @@ async function saveTicketToFirestore(ticket) {
     });
 
     return docRef.id;
-  } catch (err) {
-    console.error('Firestore write failed:', err);
+  } catch (error) {
+    console.error('Firestore write failed:', error);
     return null;
   }
 }
@@ -203,9 +200,9 @@ async function syncLocalOnlyTickets(localOnlyTickets, selectedId) {
 }
 
 async function seedFromJson() {
-  const data = await fetchTicketsJson();
+  const tickets = await fetchTicketsJson();
 
-  for (const ticket of data) {
+  for (const ticket of tickets) {
     await addDoc(collection(db, 'tickets'), {
       title: ticket.title,
       description: ticket.description,
@@ -213,22 +210,20 @@ async function seedFromJson() {
       createdAt: ticket.createdAt,
     });
   }
-
-  return true;
 }
 
-async function loadFallbackTickets({ cachedTickets }) {
-  const fallbackResults = await Promise.allSettled([
+async function loadFallbackTickets(cachedTickets) {
+  const results = await Promise.allSettled([
     Promise.resolve(cachedTickets),
     fetchTicketsJson(),
   ]);
 
-  const [cachedResult, jsonResult] = fallbackResults;
+  const [cachedResult, jsonResult] = results;
 
   if (cachedResult.status === 'fulfilled' && cachedResult.value.length > 0) {
     return {
       tickets: cachedResult.value,
-      staleNotice: 'Showing cached tickets from local storage.',
+      source: 'cache',
       lastLoadedAt: loadTicketsSavedAt(),
     };
   }
@@ -238,12 +233,12 @@ async function loadFallbackTickets({ cachedTickets }) {
 
     return {
       tickets: jsonResult.value,
-      staleNotice: 'Showing fallback tickets from local JSON.',
+      source: 'json',
       lastLoadedAt: loadTicketsSavedAt(),
     };
   }
 
-  throw toStructuredError(jsonResult.reason);
+  throw jsonResult.reason;
 }
 
 export async function loadTicketsData({ selectedId }) {
@@ -256,12 +251,12 @@ export async function loadTicketsData({ selectedId }) {
       orderBy('createdAt', 'desc')
     );
 
-    const snapshot = await withTimeout(getDocs(ticketsQuery), LOAD_TIMEOUT_MS);
+    const snapshot = await waitWithTimeout(getDocs(ticketsQuery), LOAD_TIMEOUT_MS);
     const localOnlyTickets = getLocalOnlyTickets(cachedTickets);
 
     if (snapshot.empty) {
       await seedFromJson();
-      return await loadTicketsData({ selectedId });
+      return loadTicketsData({ selectedId });
     }
 
     const remoteTickets = snapshot.docs.map(doc => ({
@@ -271,50 +266,43 @@ export async function loadTicketsData({ selectedId }) {
 
     assertValidTickets(remoteTickets);
 
-    const {
-      syncedTickets,
-      selectedId: nextSelectedId,
-    } = localOnlyTickets.length > 0
+    const syncedResult = localOnlyTickets.length > 0
       ? await syncLocalOnlyTickets(localOnlyTickets, selectedId)
       : { syncedTickets: [], selectedId };
 
     const tickets = sortTicketsByNewest([
       ...remoteTickets,
-      ...syncedTickets,
+      ...syncedResult.syncedTickets,
     ]);
 
     saveTicketsToStorage(tickets);
 
     return {
       tickets,
-      selectedId: nextSelectedId,
+      selectedId: syncedResult.selectedId,
       error: '',
       staleNotice: '',
       lastLoadedAt: loadTicketsSavedAt(),
     };
-  } catch (err) {
-    const structuredError = toStructuredError(err);
-    const userMessage = toUserMessage(structuredError);
-
+  } catch (error) {
     try {
-      const fallback = await loadFallbackTickets({ cachedTickets });
+      const fallback = await loadFallbackTickets(cachedTickets);
+      const staleNotice = fallback.source === 'cache'
+        ? formatStaleMessage(cachedSavedAt, 'cached tickets from local storage')
+        : 'Showing fallback tickets from local JSON.';
 
       return {
         tickets: fallback.tickets,
         selectedId,
-        error: userMessage,
-        staleNotice: fallback.tickets === cachedTickets && cachedTickets.length > 0
-          ? formatStaleMessage(cachedSavedAt, 'cached tickets from local storage')
-          : fallback.staleNotice,
+        error: getErrorMessage(error),
+        staleNotice,
         lastLoadedAt: fallback.lastLoadedAt,
       };
-    } catch (jsonErr) {
-      const fallbackError = toStructuredError(jsonErr);
-
+    } catch (fallbackError) {
       return {
         tickets: [],
         selectedId,
-        error: toUserMessage(fallbackError.code === 'timeout' ? fallbackError : structuredError),
+        error: getErrorMessage(fallbackError.code === 'timeout' ? fallbackError : error),
         staleNotice: '',
         lastLoadedAt: null,
       };
