@@ -22,6 +22,12 @@ export const state = {
   selectedAnnouncementId: null,
   showAnnouncementForm: false,
   editingAnnouncementId: null,
+  newsArticles: [],
+  newsQuery: '',
+  activeNewsCategory: 'all',
+  selectedNewsId: null,
+  showNewsForm: false,
+  editingNewsId: null,
   employees: [],
   directoryQuery: '',
   activeDepartment: 'all',
@@ -29,6 +35,8 @@ export const state = {
   calendarQuery: '',
   activeEventType: 'all',
   selectedEventId: null,
+  showEventForm: false,
+  editingEventId: null,
   weather: null,
   weatherError: '',
 };
@@ -59,7 +67,7 @@ export function getAdminUsers() {
 }
 
 export function getPinnedAnnouncement() {
-  return state.announcements.find((announcement) => announcement.isPinned) ?? state.announcements[0] ?? null;
+  return state.announcements.find((announcement) => announcement.isPinned) ?? null;
 }
 
 export function getVisibleAnnouncements() {
@@ -89,6 +97,50 @@ export function getSelectedAnnouncement() {
   }
 
   return state.announcements.find((announcement) => announcement.id === state.selectedAnnouncementId) ?? null;
+}
+
+export function getNewsCategoryCounts() {
+  return state.newsArticles.reduce((counts, article) => {
+    counts[article.category] = (counts[article.category] ?? 0) + 1;
+    return counts;
+  }, {});
+}
+
+export function getVisibleNews() {
+  const query = state.newsQuery.trim().toLowerCase();
+
+  return [...state.newsArticles]
+    .filter((article) => {
+      const matchesCategory = state.activeNewsCategory === 'all'
+        || article.category === state.activeNewsCategory;
+      if (!matchesCategory) {
+        return false;
+      }
+
+      if (query === '') {
+        return true;
+      }
+
+      return article.title.toLowerCase().includes(query)
+        || article.summary.toLowerCase().includes(query)
+        || article.body.toLowerCase().includes(query)
+        || article.category.toLowerCase().includes(query);
+    })
+    .sort((a, b) => {
+      if (a.isFeatured !== b.isFeatured) {
+        return a.isFeatured ? -1 : 1;
+      }
+
+      return new Date(b.publishedAt) - new Date(a.publishedAt);
+    });
+}
+
+export function getSelectedNewsArticle() {
+  if (!state.selectedNewsId) {
+    return null;
+  }
+
+  return state.newsArticles.find((article) => article.id === state.selectedNewsId) ?? null;
 }
 
 export function getDepartmentCounts() {

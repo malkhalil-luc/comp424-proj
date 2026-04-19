@@ -18,6 +18,7 @@ import {
 const DATA_URL = './data/tickets.json';
 const EVENTS_URL = './data/events.json';
 const ANNOUNCEMENTS_URL = './data/announcements.json';
+const NEWS_URL = './data/news.json';
 const EMPLOYEES_URL = './data/employees.json';
 const LOAD_TIMEOUT_MS = 8000;
 const DEFAULT_CREATOR_ID = 'staff-001';
@@ -170,6 +171,30 @@ function normalizeAnnouncements(announcements) {
     }));
 }
 
+function normalizeNewsArticles(newsArticles) {
+  if (!Array.isArray(newsArticles)) {
+    throw makeError('validation', 'News data must be an array.');
+  }
+
+  return newsArticles
+    .filter((article) =>
+      article
+      && typeof article.id === 'string'
+      && typeof article.title === 'string'
+      && typeof article.category === 'string'
+      && typeof article.summary === 'string'
+      && typeof article.body === 'string'
+      && typeof article.isFeatured === 'boolean'
+      && isValidDateString(article.publishedAt)
+    )
+    .map((article) => ({
+      ...article,
+      updatedAt: isValidDateString(article.updatedAt)
+        ? article.updatedAt
+        : article.publishedAt,
+    }));
+}
+
 function normalizeEmployees(employees) {
   if (!Array.isArray(employees)) {
     throw makeError('validation', 'Employees data must be an array.');
@@ -221,6 +246,29 @@ function serializeAnnouncement(announcement) {
     isPinned: announcement.isPinned,
     publishedAt: announcement.publishedAt,
     updatedAt: announcement.updatedAt,
+  };
+}
+
+function serializeEvent(event) {
+  return {
+    title: event.title,
+    eventType: event.eventType,
+    startsAt: event.startsAt,
+    location: event.location,
+    description: event.description,
+    organizer: event.organizer,
+  };
+}
+
+function serializeNewsArticle(article) {
+  return {
+    title: article.title,
+    category: article.category,
+    summary: article.summary,
+    body: article.body,
+    isFeatured: article.isFeatured,
+    publishedAt: article.publishedAt,
+    updatedAt: article.updatedAt,
   };
 }
 
@@ -507,7 +555,7 @@ export async function loadTicketsData({ selectedId }) {
 
 export async function loadDashboardData() {
   const [eventsResult, weatherResult] = await Promise.allSettled([
-    fetchJson(EVENTS_URL),
+    loadEventsData(),
     fetchJson(CHICAGO_WEATHER_URL),
   ]);
 
@@ -526,8 +574,47 @@ export async function loadDirectoryData() {
   return normalizeEmployees(await fetchJson(EMPLOYEES_URL));
 }
 
+async function fetchEventsJson() {
+  return normalizeEvents(await fetchJson(EVENTS_URL));
+}
+
+async function seedEventsFromJson() {
+  const events = await fetchEventsJson();
+
+  for (const event of events) {
+    await addDoc(collection(db, 'events'), serializeEvent(event));
+  }
+}
+
+export async function loadEventsData() {
+  try {
+    const eventsQuery = query(
+      collection(db, 'events'),
+      orderBy('startsAt', 'asc')
+    );
+
+    const snapshot = await withTimeout(getDocs(eventsQuery), LOAD_TIMEOUT_MS);
+
+    if (snapshot.empty) {
+      await seedEventsFromJson();
+      return loadEventsData();
+    }
+
+    return normalizeEvents(snapshot.docs.map((docSnapshot) => ({
+      id: docSnapshot.id,
+      ...docSnapshot.data(),
+    })));
+  } catch (error) {
+    return fetchEventsJson();
+  }
+}
+
 async function fetchAnnouncementsJson() {
   return normalizeAnnouncements(await fetchJson(ANNOUNCEMENTS_URL));
+}
+
+async function fetchNewsJson() {
+  return normalizeNewsArticles(await fetchJson(NEWS_URL));
 }
 
 async function seedAnnouncementsFromJson() {
@@ -535,6 +622,14 @@ async function seedAnnouncementsFromJson() {
 
   for (const announcement of announcements) {
     await addDoc(collection(db, 'announcements'), serializeAnnouncement(announcement));
+  }
+}
+
+async function seedNewsFromJson() {
+  const newsArticles = await fetchNewsJson();
+
+  for (const article of newsArticles) {
+    await addDoc(collection(db, 'news'), serializeNewsArticle(article));
   }
 }
 
@@ -549,6 +644,22 @@ async function unpinOtherAnnouncements(selectedAnnouncementId) {
     if (announcementDoc.data().isPinned === true) {
       await updateDoc(doc(db, 'announcements', announcementDoc.id), {
         isPinned: false,
+      });
+    }
+  }
+}
+
+async function unfeatureOtherNewsArticles(selectedArticleId) {
+  const snapshot = await getDocs(collection(db, 'news'));
+
+  for (const articleDoc of snapshot.docs) {
+    if (articleDoc.id === selectedArticleId) {
+      continue;
+    }
+
+    if (articleDoc.data().isFeatured === true) {
+      await updateDoc(doc(db, 'news', articleDoc.id), {
+        isFeatured: false,
       });
     }
   }
@@ -574,6 +685,29 @@ export async function loadAnnouncementsData() {
     })));
   } catch (error) {
     return fetchAnnouncementsJson();
+  }
+}
+
+export async function loadNewsData() {
+  try {
+    const newsQuery = query(
+      collection(db, 'news'),
+      orderBy('publishedAt', 'desc')
+    );
+
+    const snapshot = await withTimeout(getDocs(newsQuery), LOAD_TIMEOUT_MS);
+
+    if (snapshot.empty) {
+      await seedNewsFromJson();
+      return loadNewsData();
+    }
+
+    return normalizeNewsArticles(snapshot.docs.map((docSnapshot) => ({
+      id: docSnapshot.id,
+      ...docSnapshot.data(),
+    })));
+  } catch (error) {
+    return fetchNewsJson();
   }
 }
 
@@ -612,6 +746,70 @@ export async function removeAnnouncement(announcementId) {
   }
 
   await deleteDoc(doc(db, 'announcements', announcementId));
+}
+
+export async function saveNewsArticle(article) {
+  const normalizedArticle = normalizeNewsArticles([article])[0];
+
+  if (!navigator.onLine) {
+    return normalizedArticle;
+  }
+
+  if (!normalizedArticle.id || normalizedArticle.id.startsWith('news-')) {
+    const docRef = await addDoc(collection(db, 'news'), serializeNewsArticle(normalizedArticle));
+
+    if (normalizedArticle.isFeatured) {
+      await unfeatureOtherNewsArticles(docRef.id);
+    }
+
+    return {
+      ...normalizedArticle,
+      id: docRef.id,
+    };
+  }
+
+  await updateDoc(doc(db, 'news', normalizedArticle.id), serializeNewsArticle(normalizedArticle));
+
+  if (normalizedArticle.isFeatured) {
+    await unfeatureOtherNewsArticles(normalizedArticle.id);
+  }
+
+  return normalizedArticle;
+}
+
+export async function removeNewsArticle(articleId) {
+  if (!navigator.onLine) {
+    return;
+  }
+
+  await deleteDoc(doc(db, 'news', articleId));
+}
+
+export async function saveEvent(event) {
+  const normalizedEvent = normalizeEvents([event])[0];
+
+  if (!navigator.onLine) {
+    return normalizedEvent;
+  }
+
+  if (!normalizedEvent.id || normalizedEvent.id.startsWith('evt-')) {
+    const docRef = await addDoc(collection(db, 'events'), serializeEvent(normalizedEvent));
+    return {
+      ...normalizedEvent,
+      id: docRef.id,
+    };
+  }
+
+  await updateDoc(doc(db, 'events', normalizedEvent.id), serializeEvent(normalizedEvent));
+  return normalizedEvent;
+}
+
+export async function removeEvent(eventId) {
+  if (!navigator.onLine) {
+    return;
+  }
+
+  await deleteDoc(doc(db, 'events', eventId));
 }
 
 export async function createTicket(newTicket) {

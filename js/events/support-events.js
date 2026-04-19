@@ -118,6 +118,11 @@ export function bindSupportEvents(state, render) {
 
     if (!isValid) return;
 
+    const currentUser = getCurrentUser();
+    const requesterUserId = currentUser.role === 'admin'
+      ? (dom.requesterInput.value || state.users.find((user) => user.role === 'staff')?.id || currentUser.id)
+      : currentUser.id;
+
     const newTicket = {
       id: '',
       title: dom.titleInput.value.trim(),
@@ -126,11 +131,15 @@ export function bindSupportEvents(state, render) {
       ticketStatus: 'Open',
       createdAt: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
       updatedAt: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
-      createdByUserId: getCurrentUser().id,
+      createdByUserId: requesterUserId,
       assignedAgentId: null,
       closedAt: null,
       messages: [
-        createTicketMessage(dom.descriptionInput.value.trim(), getCurrentUser()),
+        {
+          ...createTicketMessage(dom.descriptionInput.value.trim(), currentUser),
+          authorId: requesterUserId,
+          authorRole: 'staff',
+        },
       ],
     };
 

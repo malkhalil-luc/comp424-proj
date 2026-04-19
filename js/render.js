@@ -7,6 +7,7 @@ import {
   getDepartmentCounts,
   getAccessibleTickets,
   getCurrentUser,
+  getNewsCategoryCounts,
   getSelectedTicket,
   getTicketStatusCounts,
   getSelectedAnnouncement,
@@ -24,7 +25,19 @@ import {
   renderAnnouncementDetail,
   renderAnnouncementList,
 } from './render/announcements-render.js';
+import {
+  renderNewsDetail,
+  renderNewsList,
+} from './render/news-render.js';
 import { renderTicketDetail, renderTicketList } from './render/support-render.js';
+
+function renderFormPlaceholder(container, message) {
+  container.innerHTML = '';
+  const placeholder = document.createElement('p');
+  placeholder.className = 'detail-placeholder';
+  placeholder.textContent = message;
+  container.append(placeholder);
+}
 
 function renderSessionBar(currentUser, onLogout) {
   const role = document.createElement('span');
@@ -76,6 +89,87 @@ function renderAnnouncementForm(state) {
   }
 }
 
+function renderEventForm(state, currentUser) {
+  if (currentUser?.role !== 'admin') {
+    dom.newEventBtn.hidden = true;
+    dom.eventFormSection.hidden = true;
+    return;
+  }
+
+  dom.newEventBtn.hidden = false;
+  dom.eventFormSection.hidden = !state.showEventForm;
+
+  if (!state.showEventForm) {
+    return;
+  }
+
+  const editingEvent = state.editingEventId
+    ? state.events.find((event) => event.id === state.editingEventId) ?? null
+    : null;
+
+  if (editingEvent) {
+    dom.eventTitleInput.value = editingEvent.title;
+    dom.eventTypeInput.value = editingEvent.eventType;
+    dom.eventStartsAtInput.value = editingEvent.startsAt.slice(0, 16);
+    dom.eventLocationInput.value = editingEvent.location;
+    dom.eventOrganizerInput.value = editingEvent.organizer;
+    dom.eventDescriptionInput.value = editingEvent.description;
+  } else {
+    dom.eventForm.reset();
+  }
+}
+
+function renderNewsForm(state, currentUser) {
+  if (currentUser?.role !== 'admin') {
+    dom.newNewsBtn.hidden = true;
+    dom.newsFormSection.hidden = true;
+    return;
+  }
+
+  dom.newNewsBtn.hidden = false;
+  dom.newsFormSection.hidden = !state.showNewsForm;
+
+  if (!state.showNewsForm) {
+    return;
+  }
+
+  const editingArticle = state.editingNewsId
+    ? state.newsArticles.find((article) => article.id === state.editingNewsId) ?? null
+    : null;
+
+  if (editingArticle) {
+    dom.newsTitleInput.value = editingArticle.title;
+    dom.newsCategoryInput.value = editingArticle.category;
+    dom.newsSummaryInput.value = editingArticle.summary;
+    dom.newsBodyInput.value = editingArticle.body;
+    dom.newsFeaturedInput.checked = editingArticle.isFeatured;
+  } else {
+    dom.newsForm.reset();
+    dom.newsFeaturedInput.checked = false;
+  }
+}
+
+function renderSupportForm(state, currentUser) {
+  const isAdmin = currentUser?.role === 'admin';
+  dom.requesterField.hidden = !isAdmin;
+
+  if (isAdmin) {
+    const staffUsers = state.users.filter((user) => user.role === 'staff');
+    dom.requesterInput.replaceChildren(
+      ...staffUsers.map((user) => {
+        const option = document.createElement('option');
+        option.value = user.id;
+        option.textContent = `${user.name} (${user.department})`;
+        return option;
+      })
+    );
+
+    if (!staffUsers.some((user) => user.id === dom.requesterInput.value)) {
+      dom.requesterInput.value = staffUsers[0]?.id ?? '';
+    }
+  }
+}
+
 export function render(state, handlers) {
   const currentUser = getCurrentUser();
 
@@ -99,7 +193,6 @@ export function render(state, handlers) {
   dom.sidebar.hidden = false;
   dom.sidebarBackdrop.hidden = false;
   dom.sidebarToggle.hidden = false;
-  dom.portalView.hidden = true;
   dom.loginView.hidden = true;
 
   renderSessionBar(currentUser, handlers.onLogout);
@@ -119,6 +212,7 @@ export function render(state, handlers) {
     dom.dashboardView.hidden = false;
     dom.supportView.hidden = true;
     dom.announcementsView.hidden = true;
+    dom.newsView.hidden = true;
     dom.directoryView.hidden = true;
     dom.calendarView.hidden = true;
     dom.dashboardView.replaceChildren(renderDashboard(state));
@@ -131,6 +225,7 @@ export function render(state, handlers) {
     dom.dashboardView.hidden = true;
     dom.supportView.hidden = true;
     dom.announcementsView.hidden = false;
+    dom.newsView.hidden = true;
     dom.directoryView.hidden = true;
     dom.calendarView.hidden = true;
 
@@ -145,7 +240,54 @@ export function render(state, handlers) {
 
     renderAnnouncementForm(state);
     renderAnnouncementList(state);
-    renderAnnouncementDetail(state);
+    if (state.showAnnouncementForm) {
+      renderFormPlaceholder(dom.announcementDetail, 'Finish or cancel the announcement form to view details.');
+    } else {
+      renderAnnouncementDetail(state);
+    }
+    dom.portalView.hidden = false;
+    return;
+  }
+
+  if (state.activeSection === 'news') {
+    dom.pageTitle.textContent = 'News';
+    dom.dashboardView.hidden = true;
+    dom.supportView.hidden = true;
+    dom.announcementsView.hidden = true;
+    dom.newsView.hidden = false;
+    dom.directoryView.hidden = true;
+    dom.calendarView.hidden = true;
+
+    SearchBar(dom.newsSearchContainer, {
+      query: state.newsQuery,
+      onInput: handlers.onNewsSearchInput,
+      onClear: handlers.onNewsSearchClear,
+      inputId: 'news-search',
+      labelText: 'Search news',
+      placeholder: 'Search news...',
+    });
+
+    const newsCategoryCounts = getNewsCategoryCounts();
+    FilterChips(dom.newsFilterContainer, {
+      chips: [
+        { value: 'all', label: `All (${state.newsArticles.length})` },
+        ...Object.entries(newsCategoryCounts).map(([category, count]) => ({
+          value: category,
+          label: `${category} (${count})`,
+        })),
+      ],
+      activeValue: state.activeNewsCategory,
+      onChange: handlers.onNewsCategoryChange,
+      ariaLabel: 'Filter news by category',
+    });
+
+    renderNewsForm(state, currentUser);
+    renderNewsList(state);
+    if (state.showNewsForm) {
+      renderFormPlaceholder(dom.newsDetail, 'Finish or cancel the news form to view details.');
+    } else {
+      renderNewsDetail();
+    }
     dom.portalView.hidden = false;
     return;
   }
@@ -155,6 +297,7 @@ export function render(state, handlers) {
     dom.dashboardView.hidden = true;
     dom.supportView.hidden = true;
     dom.announcementsView.hidden = true;
+    dom.newsView.hidden = true;
     dom.directoryView.hidden = false;
     dom.calendarView.hidden = true;
 
@@ -192,6 +335,7 @@ export function render(state, handlers) {
     dom.dashboardView.hidden = true;
     dom.supportView.hidden = true;
     dom.announcementsView.hidden = true;
+    dom.newsView.hidden = true;
     dom.directoryView.hidden = true;
     dom.calendarView.hidden = false;
 
@@ -218,8 +362,13 @@ export function render(state, handlers) {
       ariaLabel: 'Filter events by type',
     });
 
+    renderEventForm(state, currentUser);
     renderCalendarList(state);
-    renderCalendarDetail();
+    if (state.showEventForm) {
+      renderFormPlaceholder(dom.calendarDetail, 'Finish or cancel the event form to view details.');
+    } else {
+      renderCalendarDetail();
+    }
     dom.portalView.hidden = false;
     return;
   }
@@ -228,6 +377,7 @@ export function render(state, handlers) {
   dom.dashboardView.hidden = true;
   dom.supportView.hidden = false;
   dom.announcementsView.hidden = true;
+  dom.newsView.hidden = true;
   dom.directoryView.hidden = true;
   dom.calendarView.hidden = true;
 
@@ -256,6 +406,7 @@ export function render(state, handlers) {
   });
 
   dom.ticketSortSelect.value = state.sortBy;
+  renderSupportForm(state, currentUser);
 
   dom.loadErrorBanner.hidden = state.error === '';
   dom.loadErrorMessage.textContent = state.error;
@@ -305,6 +456,10 @@ export function render(state, handlers) {
   }
 
   renderTicketList(state);
-  renderTicketDetail(state, handlers.onBackFromDetail, currentUser);
+  if (state.showNewTicketForm) {
+    renderFormPlaceholder(dom.ticketDetail, 'Finish or cancel the ticket form to view details.');
+  } else {
+    renderTicketDetail(state, handlers.onBackFromDetail, currentUser);
+  }
   dom.portalView.hidden = false;
 }

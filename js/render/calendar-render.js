@@ -1,5 +1,6 @@
 import { dom } from '../dom.js';
 import {
+  getCurrentUser,
   getSelectedEvent,
   getVisibleCalendarEvents,
 } from '../state.js';
@@ -85,6 +86,7 @@ function createMetaRow(labelText, valueText) {
 
 export function renderCalendarDetail() {
   const event = getSelectedEvent();
+  const currentUser = getCurrentUser();
   dom.calendarDetail.innerHTML = '';
 
   if (!event) {
@@ -132,5 +134,26 @@ export function renderCalendarDetail() {
   description.textContent = event.description;
 
   content.append(header, details, description);
+
+  if (currentUser?.role === 'admin') {
+    const actions = document.createElement('div');
+    actions.className = 'announcement-actions';
+
+    const editBtn = document.createElement('button');
+    editBtn.type = 'button';
+    editBtn.id = 'edit-event-btn';
+    editBtn.className = 'ticket-action-btn';
+    editBtn.textContent = 'Edit';
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.id = 'delete-event-btn';
+    deleteBtn.className = 'ticket-action-btn';
+    deleteBtn.textContent = 'Delete';
+
+    actions.append(editBtn, deleteBtn);
+    content.append(actions);
+  }
+
   dom.calendarDetail.append(content);
 }

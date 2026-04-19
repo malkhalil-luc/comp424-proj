@@ -1,0 +1,32 @@
+[
+  {
+    "id": "news-001",
+    "title": "Wellness Week Starts Monday",
+    "category": "Culture",
+    "summary": "A week of campus wellness activities begins Monday with fitness sessions, lunch events, and mindfulness workshops.",
+    "body": "Employees can join morning walks, stress-management workshops, and healthy lunch pop-ups throughout the week. Registration is available through the employee portal.",
+    "isFeatured": true,
+    "publishedAt": "2026-04-18T14:00:00Z",
+    "updatedAt": "2026-04-18T14:00:00Z"
+  },
+  {
+    "id": "news-002",
+    "title": "IT Upgrades Shared Printing Service",
+    "category": "Operations",
+    "summary": "The IT team completed printer queue upgrades to improve reliability across shared office devices.",
+    "body": "The new print service rollout reduces stuck print jobs and improves campus printer availability. Employees may need to reconnect once after the update.",
+    "isFeatured": false,
+    "publishedAt": "2026-04-16T16:30:00Z",
+    "updatedAt": "2026-04-16T16:30:00Z"
+  },
+  {
+    "id": "news-003",
+    "title": "HR Launches New Learning Resources",
+    "category": "People",
+    "summary": "New onboarding and professional development resources are available this month in the learning hub.",
+    "body": "The HR team added new onboarding guides, manager toolkits, and self-paced learning tracks for staff interested in leadership and communication training.",
+    "isFeatured": false,
+    "publishedAt": "2026-04-14T12:15:00Z",
+    "updatedAt": "2026-04-14T12:15:00Z"
+  }
+]

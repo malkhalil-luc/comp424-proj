@@ -4,6 +4,7 @@ import { bindAppEvents } from './events/app-events.js';
 import { bindAnnouncementsEvents } from './events/announcements-events.js';
 import { bindCalendarEvents } from './events/calendar-events.js';
 import { bindDirectoryEvents } from './events/directory-events.js';
+import { bindNewsEvents } from './events/news-events.js';
 import { bindSupportEvents } from './events/support-events.js';
 import {
   clearSessionUserId,
@@ -15,6 +16,8 @@ import {
   loadAnnouncementsData,
   loadDashboardData,
   loadDirectoryData,
+  loadEventsData,
+  loadNewsData,
   loadTicketsData,
 } from './api.js';
 
@@ -36,6 +39,9 @@ if (
   || !dom.announcementsView
   || !dom.announcementList
   || !dom.announcementDetail
+  || !dom.newsView
+  || !dom.newsList
+  || !dom.newsDetail
   || !dom.directoryView
   || !dom.directoryList
   || !dom.directoryDetail
@@ -57,12 +63,19 @@ function resetPortalUi() {
   state.selectedAnnouncementId = null;
   state.showAnnouncementForm = false;
   state.editingAnnouncementId = null;
+  state.newsQuery = '';
+  state.activeNewsCategory = 'all';
+  state.selectedNewsId = null;
+  state.showNewsForm = false;
+  state.editingNewsId = null;
   state.directoryQuery = '';
   state.activeDepartment = 'all';
   state.selectedEmployeeId = null;
   state.calendarQuery = '';
   state.activeEventType = 'all';
   state.selectedEventId = null;
+  state.showEventForm = false;
+  state.editingEventId = null;
 }
 
 function renderAppState() {
@@ -90,6 +103,18 @@ function renderAppState() {
     },
     onAnnouncementSearchClear: () => {
       state.announcementQuery = '';
+      renderAppState();
+    },
+    onNewsSearchInput: (value) => {
+      state.newsQuery = value;
+      renderAppState();
+    },
+    onNewsSearchClear: () => {
+      state.newsQuery = '';
+      renderAppState();
+    },
+    onNewsCategoryChange: (value) => {
+      state.activeNewsCategory = value;
       renderAppState();
     },
     onDirectorySearchInput: (value) => {
@@ -160,15 +185,21 @@ async function loadAndRenderTickets() {
 async function loadDashboardState() {
   try {
     const result = await loadDashboardData();
-    state.events = result.events;
-    state.selectedEventId = result.events[0]?.id ?? null;
     state.weather = result.weather;
     state.weatherError = result.weatherError;
   } catch {
-    state.events = [];
-    state.selectedEventId = null;
     state.weather = null;
     state.weatherError = 'Weather data is currently unavailable.';
+  }
+}
+
+async function loadEventsState() {
+  try {
+    state.events = await loadEventsData();
+    state.selectedEventId = state.events[0]?.id ?? null;
+  } catch {
+    state.events = [];
+    state.selectedEventId = null;
   }
 }
 
@@ -179,6 +210,16 @@ async function loadAnnouncementsState() {
   } catch {
     state.announcements = [];
     state.selectedAnnouncementId = null;
+  }
+}
+
+async function loadNewsState() {
+  try {
+    state.newsArticles = await loadNewsData();
+    state.selectedNewsId = state.newsArticles[0]?.id ?? null;
+  } catch {
+    state.newsArticles = [];
+    state.selectedNewsId = null;
   }
 }
 
@@ -203,11 +244,16 @@ async function init() {
   bindAnnouncementsEvents(state, renderAppState);
   bindCalendarEvents(state, renderAppState);
   bindDirectoryEvents(state, renderAppState);
+  bindNewsEvents(state, renderAppState);
   bindSupportEvents(state, renderAppState);
   renderAppState();
   await loadDashboardState();
   renderAppState();
+  await loadEventsState();
+  renderAppState();
   await loadAnnouncementsState();
+  renderAppState();
+  await loadNewsState();
   renderAppState();
   await loadDirectoryState();
   renderAppState();

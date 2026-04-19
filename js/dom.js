@@ -44,6 +44,9 @@ export const dom = {
   get announcementSearchContainer() {
     return document.querySelector('#announcement-search-container');
   },
+  get newsSearchContainer() {
+    return document.querySelector('#news-search-container');
+  },
   get directorySearchContainer() {
     return document.querySelector('#directory-search-container');
   },
@@ -53,11 +56,59 @@ export const dom = {
   get ticketFilterContainer() {
     return document.querySelector('#ticket-filter-container');
   },
+  get newsFilterContainer() {
+    return document.querySelector('#news-filter-container');
+  },
   get directoryFilterContainer() {
     return document.querySelector('#directory-filter-container');
   },
   get calendarFilterContainer() {
     return document.querySelector('#calendar-filter-container');
+  },
+  get newEventBtn() {
+    return document.querySelector('#new-event-btn');
+  },
+  get eventFormSection() {
+    return document.querySelector('#event-form-section');
+  },
+  get eventForm() {
+    return document.querySelector('#event-form');
+  },
+  get cancelEventBtn() {
+    return document.querySelector('#cancel-event-btn');
+  },
+  get eventTitleInput() {
+    return document.querySelector('#event-title');
+  },
+  get eventTypeInput() {
+    return document.querySelector('#event-type');
+  },
+  get eventStartsAtInput() {
+    return document.querySelector('#event-starts-at');
+  },
+  get eventLocationInput() {
+    return document.querySelector('#event-location');
+  },
+  get eventOrganizerInput() {
+    return document.querySelector('#event-organizer');
+  },
+  get eventDescriptionInput() {
+    return document.querySelector('#event-description');
+  },
+  get eventTitleError() {
+    return document.querySelector('#event-title-error');
+  },
+  get eventStartsAtError() {
+    return document.querySelector('#event-starts-at-error');
+  },
+  get eventLocationError() {
+    return document.querySelector('#event-location-error');
+  },
+  get eventFormStatus() {
+    return document.querySelector('#event-form-status');
+  },
+  get eventFormError() {
+    return document.querySelector('#event-form-error');
   },
   get ticketSortSelect() {
     return document.querySelector('#ticket-sort');
@@ -83,6 +134,12 @@ export const dom = {
   get priorityInput() {
     return document.querySelector('#ticket-priority');
   },
+  get requesterField() {
+    return document.querySelector('#ticket-requester-field');
+  },
+  get requesterInput() {
+    return document.querySelector('#ticket-requester');
+  },
   get titleError() {
     return document.querySelector('#ticket-title-error');
   },
@@ -101,44 +158,95 @@ export const dom = {
   get announcementList() {
     return document.querySelector('#announcement-list');
   },
+  get newsList() {
+    return document.querySelector('#news-list');
+  },
   get announcementDetail() {
     return document.querySelector('#announcement-detail');
+  },
+  get newsDetail() {
+    return document.querySelector('#news-detail');
   },
   get announcementEmptyState() {
     return document.querySelector('#announcement-empty-state');
   },
+  get newsEmptyState() {
+    return document.querySelector('#news-empty-state');
+  },
   get newAnnouncementBtn() {
     return document.querySelector('#new-announcement-btn');
+  },
+  get newNewsBtn() {
+    return document.querySelector('#new-news-btn');
   },
   get announcementFormSection() {
     return document.querySelector('#announcement-form-section');
   },
+  get newsFormSection() {
+    return document.querySelector('#news-form-section');
+  },
   get announcementForm() {
     return document.querySelector('#announcement-form');
+  },
+  get newsForm() {
+    return document.querySelector('#news-form');
   },
   get cancelAnnouncementBtn() {
     return document.querySelector('#cancel-announcement-btn');
   },
+  get cancelNewsBtn() {
+    return document.querySelector('#cancel-news-btn');
+  },
   get announcementTitleInput() {
     return document.querySelector('#announcement-title');
+  },
+  get newsTitleInput() {
+    return document.querySelector('#news-title');
   },
   get announcementBodyInput() {
     return document.querySelector('#announcement-body');
   },
+  get newsCategoryInput() {
+    return document.querySelector('#news-category');
+  },
+  get newsSummaryInput() {
+    return document.querySelector('#news-summary');
+  },
+  get newsBodyInput() {
+    return document.querySelector('#news-body');
+  },
   get announcementPinnedInput() {
     return document.querySelector('#announcement-pinned');
+  },
+  get newsFeaturedInput() {
+    return document.querySelector('#news-featured');
   },
   get announcementTitleError() {
     return document.querySelector('#announcement-title-error');
   },
+  get newsTitleError() {
+    return document.querySelector('#news-title-error');
+  },
   get announcementBodyError() {
     return document.querySelector('#announcement-body-error');
+  },
+  get newsSummaryError() {
+    return document.querySelector('#news-summary-error');
+  },
+  get newsBodyError() {
+    return document.querySelector('#news-body-error');
   },
   get announcementFormStatus() {
     return document.querySelector('#announcement-form-status');
   },
+  get newsFormStatus() {
+    return document.querySelector('#news-form-status');
+  },
   get announcementFormError() {
     return document.querySelector('#announcement-form-error');
+  },
+  get newsFormError() {
+    return document.querySelector('#news-form-error');
   },
   get directoryList() {
     return document.querySelector('#directory-list');
@@ -172,6 +280,9 @@ export const dom = {
   },
   get announcementsView() {
     return document.querySelector('#announcements-view');
+  },
+  get newsView() {
+    return document.querySelector('#news-view');
   },
   get directoryView() {
     return document.querySelector('#directory-view');

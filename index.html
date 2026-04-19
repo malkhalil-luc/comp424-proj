@@ -38,7 +38,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link nav-link--disabled" aria-disabled="true" tabindex="-1">
+                    <a href="#news" class="nav-link" data-section="news">
                         <img src="assets/icons/newspaper.svg" alt="" class="nav-icon" />
                         <span class="nav-label">News</span>
                     </a>
@@ -76,12 +76,14 @@
                         <div class="list-controls">
                             <div id="search-bar-container"></div>
                             <div id="ticket-filter-container"></div>
-                            <label for="ticket-sort" class="sr-only">Sort tickets</label>
-                            <select id="ticket-sort">
-                                <option value="newest">Newest</option>
-                                <option value="oldest">Oldest</option>
-                                <option value="priority">Priority</option>
-                            </select>
+                            <label for="ticket-sort" class="sort-control">
+                                <span>Sort</span>
+                                <select id="ticket-sort">
+                                    <option value="newest">Newest</option>
+                                    <option value="oldest">Oldest</option>
+                                    <option value="priority">Priority</option>
+                                </select>
+                            </label>
                             <button type="button" id="new-ticket-btn">+ Create New Ticket</button>
                         </div>
 
@@ -107,6 +109,10 @@
                                         <option value="medium" selected>Medium</option>
                                         <option value="high">High</option>
                                     </select>
+                                </div>
+                                <div class="field" id="ticket-requester-field" hidden>
+                                    <label for="ticket-requester">Requested For</label>
+                                    <select id="ticket-requester" name="createdByUserId"></select>
                                 </div>
                                 <div class="form-actions">
                                     <button type="submit">Submit</button>
@@ -139,7 +145,7 @@
 
                         <div class="list-controls">
                             <div id="announcement-search-container"></div>
-                            <button type="button" id="new-announcement-btn" hidden>+ New Announcement</button>
+                            <button type="button" id="new-announcement-btn" class="ticket-action-btn ticket-action-btn--primary" hidden>+ New Announcement</button>
                         </div>
 
                         <section id="announcement-form-section" aria-labelledby="announcement-form-heading" hidden>
@@ -180,6 +186,69 @@
                         </div>
                     </section>
                 </div>
+                <div class="shell" id="news-view" hidden>
+                    <section class="list-panel" aria-labelledby="news-list-heading">
+                        <h2 id="news-list-heading" class="sr-only">News List</h2>
+
+                        <div class="list-controls">
+                            <div id="news-search-container"></div>
+                            <div id="news-filter-container"></div>
+                            <button type="button" id="new-news-btn" class="ticket-action-btn ticket-action-btn--primary" hidden>+ New Article</button>
+                        </div>
+
+                        <section id="news-form-section" aria-labelledby="news-form-heading" hidden>
+                            <h3 id="news-form-heading">News Editor</h3>
+                            <form id="news-form" novalidate>
+                                <div class="field">
+                                    <label for="news-title">Title</label>
+                                    <input id="news-title" name="title" type="text" required
+                                        aria-describedby="news-title-error" autocomplete="off" />
+                                    <p id="news-title-error" role="alert" aria-live="assertive"></p>
+                                </div>
+                                <div class="field">
+                                    <label for="news-category">Category</label>
+                                    <select id="news-category" name="category">
+                                        <option value="Culture">Culture</option>
+                                        <option value="Operations">Operations</option>
+                                        <option value="People">People</option>
+                                        <option value="Technology">Technology</option>
+                                    </select>
+                                </div>
+                                <div class="field">
+                                    <label for="news-summary">Summary</label>
+                                    <textarea id="news-summary" name="summary" required
+                                        aria-describedby="news-summary-error"></textarea>
+                                    <p id="news-summary-error" role="alert" aria-live="assertive"></p>
+                                </div>
+                                <div class="field">
+                                    <label for="news-body">Article Body</label>
+                                    <textarea id="news-body" name="body" required
+                                        aria-describedby="news-body-error"></textarea>
+                                    <p id="news-body-error" role="alert" aria-live="assertive"></p>
+                                </div>
+                                <label class="checkbox-field" for="news-featured">
+                                    <input id="news-featured" name="isFeatured" type="checkbox" />
+                                    <span>Feature this article</span>
+                                </label>
+                                <div class="form-actions">
+                                    <button type="submit">Save</button>
+                                    <button type="button" id="cancel-news-btn">Cancel</button>
+                                </div>
+                                <p id="news-form-status" role="status" aria-live="polite"></p>
+                                <p id="news-form-error" role="alert" aria-live="assertive"></p>
+                            </form>
+                        </section>
+
+                        <ul id="news-list" aria-label="News articles" role="list"></ul>
+                        <p id="news-empty-state" hidden>No news articles found.</p>
+                    </section>
+                    <section class="detail-panel" aria-labelledby="news-detail-heading">
+                        <h2 id="news-detail-heading" class="sr-only">News Details</h2>
+                        <div id="news-detail">
+                            <p class="detail-placeholder">Select a news article to view details.</p>
+                        </div>
+                    </section>
+                </div>
                 <div class="shell" id="directory-view" hidden>
                     <section class="list-panel" aria-labelledby="directory-list-heading">
                         <h2 id="directory-list-heading" class="sr-only">Employee Directory</h2>
@@ -206,7 +275,55 @@
                         <div class="list-controls">
                             <div id="calendar-search-container"></div>
                             <div id="calendar-filter-container"></div>
+                            <button type="button" id="new-event-btn" class="ticket-action-btn ticket-action-btn--primary" hidden>+ New Event</button>
                         </div>
+
+                        <section id="event-form-section" aria-labelledby="event-form-heading" hidden>
+                            <h3 id="event-form-heading">Event Editor</h3>
+                            <form id="event-form" novalidate>
+                                <div class="field">
+                                    <label for="event-title">Title</label>
+                                    <input id="event-title" name="title" type="text" required
+                                        aria-describedby="event-title-error" autocomplete="off" />
+                                    <p id="event-title-error" role="alert" aria-live="assertive"></p>
+                                </div>
+                                <div class="field">
+                                    <label for="event-type">Type</label>
+                                    <select id="event-type" name="eventType">
+                                        <option value="Meeting">Meeting</option>
+                                        <option value="Training">Training</option>
+                                        <option value="Deadline">Deadline</option>
+                                        <option value="Holiday">Holiday</option>
+                                    </select>
+                                </div>
+                                <div class="field">
+                                    <label for="event-starts-at">Starts At</label>
+                                    <input id="event-starts-at" name="startsAt" type="datetime-local" required
+                                        aria-describedby="event-starts-at-error" />
+                                    <p id="event-starts-at-error" role="alert" aria-live="assertive"></p>
+                                </div>
+                                <div class="field">
+                                    <label for="event-location">Location</label>
+                                    <input id="event-location" name="location" type="text" required
+                                        aria-describedby="event-location-error" autocomplete="off" />
+                                    <p id="event-location-error" role="alert" aria-live="assertive"></p>
+                                </div>
+                                <div class="field">
+                                    <label for="event-organizer">Organizer</label>
+                                    <input id="event-organizer" name="organizer" type="text" autocomplete="off" />
+                                </div>
+                                <div class="field">
+                                    <label for="event-description">Description</label>
+                                    <textarea id="event-description" name="description"></textarea>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit">Save</button>
+                                    <button type="button" id="cancel-event-btn">Cancel</button>
+                                </div>
+                                <p id="event-form-status" role="status" aria-live="polite"></p>
+                                <p id="event-form-error" role="alert" aria-live="assertive"></p>
+                            </form>
+                        </section>
 
                         <ul id="calendar-list" aria-label="Calendar events" role="list"></ul>
                         <p id="calendar-empty-state" hidden>No events found.</p>
