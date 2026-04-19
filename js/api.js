@@ -5,6 +5,7 @@ import {
   getDocs,
   addDoc,
   updateDoc,
+  deleteDoc,
   orderBy,
   query,
 } from './firebase.js';
@@ -17,6 +18,7 @@ import {
 const DATA_URL = './data/tickets.json';
 const EVENTS_URL = './data/events.json';
 const ANNOUNCEMENTS_URL = './data/announcements.json';
+const EMPLOYEES_URL = './data/employees.json';
 const LOAD_TIMEOUT_MS = 8000;
 const DEFAULT_CREATOR_ID = 'staff-001';
 const CHICAGO_WEATHER_URL = 'https://api.open-meteo.com/v1/forecast?latitude=41.8781&longitude=-87.6298&current=temperature_2m,weather_code,wind_speed_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FChicago';
@@ -126,14 +128,24 @@ function normalizeEvents(events) {
     throw makeError('validation', 'Events data must be an array.');
   }
 
-  return events.filter((event) =>
-    event
-    && typeof event.id === 'string'
-    && typeof event.title === 'string'
-    && typeof event.eventType === 'string'
-    && isValidDateString(event.startsAt)
-    && typeof event.location === 'string'
-  );
+  return events
+    .filter((event) =>
+      event
+      && typeof event.id === 'string'
+      && typeof event.title === 'string'
+      && typeof event.eventType === 'string'
+      && isValidDateString(event.startsAt)
+      && typeof event.location === 'string'
+    )
+    .map((event) => ({
+      ...event,
+      description: typeof event.description === 'string'
+        ? event.description
+        : 'No event details were provided.',
+      organizer: typeof event.organizer === 'string'
+        ? event.organizer
+        : 'Portal Staff',
+    }));
 }
 
 function normalizeAnnouncements(announcements) {
@@ -141,13 +153,38 @@ function normalizeAnnouncements(announcements) {
     throw makeError('validation', 'Announcements data must be an array.');
   }
 
-  return announcements.filter((announcement) =>
-    announcement
-    && typeof announcement.id === 'string'
-    && typeof announcement.title === 'string'
-    && typeof announcement.body === 'string'
-    && typeof announcement.isPinned === 'boolean'
-    && isValidDateString(announcement.publishedAt)
+  return announcements
+    .filter((announcement) =>
+      announcement
+      && typeof announcement.id === 'string'
+      && typeof announcement.title === 'string'
+      && typeof announcement.body === 'string'
+      && typeof announcement.isPinned === 'boolean'
+      && isValidDateString(announcement.publishedAt)
+    )
+    .map((announcement) => ({
+      ...announcement,
+      updatedAt: isValidDateString(announcement.updatedAt)
+        ? announcement.updatedAt
+        : announcement.publishedAt,
+    }));
+}
+
+function normalizeEmployees(employees) {
+  if (!Array.isArray(employees)) {
+    throw makeError('validation', 'Employees data must be an array.');
+  }
+
+  return employees.filter((employee) =>
+    employee
+    && typeof employee.id === 'string'
+    && typeof employee.name === 'string'
+    && typeof employee.title === 'string'
+    && typeof employee.department === 'string'
+    && typeof employee.email === 'string'
+    && typeof employee.phone === 'string'
+    && typeof employee.office === 'string'
+    && typeof employee.bio === 'string'
   );
 }
 
@@ -174,6 +211,16 @@ function serializeTicket(ticket) {
     createdByUserId: ticket.createdByUserId,
     closedAt: ticket.closedAt,
     messages: ticket.messages,
+  };
+}
+
+function serializeAnnouncement(announcement) {
+  return {
+    title: announcement.title,
+    body: announcement.body,
+    isPinned: announcement.isPinned,
+    publishedAt: announcement.publishedAt,
+    updatedAt: announcement.updatedAt,
   };
 }
 
@@ -459,17 +506,13 @@ export async function loadTicketsData({ selectedId }) {
 }
 
 export async function loadDashboardData() {
-  const [eventsResult, announcementsResult, weatherResult] = await Promise.allSettled([
+  const [eventsResult, weatherResult] = await Promise.allSettled([
     fetchJson(EVENTS_URL),
-    fetchJson(ANNOUNCEMENTS_URL),
     fetchJson(CHICAGO_WEATHER_URL),
   ]);
 
   return {
     events: eventsResult.status === 'fulfilled' ? normalizeEvents(eventsResult.value) : [],
-    announcements: announcementsResult.status === 'fulfilled'
-      ? normalizeAnnouncements(announcementsResult.value)
-      : [],
     weather: weatherResult.status === 'fulfilled'
       ? getWeatherSummary(weatherResult.value.current)
       : null,
@@ -477,6 +520,98 @@ export async function loadDashboardData() {
       ? 'Weather data is currently unavailable.'
       : '',
   };
+}
+
+export async function loadDirectoryData() {
+  return normalizeEmployees(await fetchJson(EMPLOYEES_URL));
+}
+
+async function fetchAnnouncementsJson() {
+  return normalizeAnnouncements(await fetchJson(ANNOUNCEMENTS_URL));
+}
+
+async function seedAnnouncementsFromJson() {
+  const announcements = await fetchAnnouncementsJson();
+
+  for (const announcement of announcements) {
+    await addDoc(collection(db, 'announcements'), serializeAnnouncement(announcement));
+  }
+}
+
+async function unpinOtherAnnouncements(selectedAnnouncementId) {
+  const snapshot = await getDocs(collection(db, 'announcements'));
+
+  for (const announcementDoc of snapshot.docs) {
+    if (announcementDoc.id === selectedAnnouncementId) {
+      continue;
+    }
+
+    if (announcementDoc.data().isPinned === true) {
+      await updateDoc(doc(db, 'announcements', announcementDoc.id), {
+        isPinned: false,
+      });
+    }
+  }
+}
+
+export async function loadAnnouncementsData() {
+  try {
+    const announcementsQuery = query(
+      collection(db, 'announcements'),
+      orderBy('publishedAt', 'desc')
+    );
+
+    const snapshot = await withTimeout(getDocs(announcementsQuery), LOAD_TIMEOUT_MS);
+
+    if (snapshot.empty) {
+      await seedAnnouncementsFromJson();
+      return loadAnnouncementsData();
+    }
+
+    return normalizeAnnouncements(snapshot.docs.map((docSnapshot) => ({
+      id: docSnapshot.id,
+      ...docSnapshot.data(),
+    })));
+  } catch (error) {
+    return fetchAnnouncementsJson();
+  }
+}
+
+export async function saveAnnouncement(announcement) {
+  const normalizedAnnouncement = normalizeAnnouncements([announcement])[0];
+
+  if (!navigator.onLine) {
+    return normalizedAnnouncement;
+  }
+
+  if (!normalizedAnnouncement.id || normalizedAnnouncement.id.startsWith('ann-')) {
+    const docRef = await addDoc(collection(db, 'announcements'), serializeAnnouncement(normalizedAnnouncement));
+
+    if (normalizedAnnouncement.isPinned) {
+      await unpinOtherAnnouncements(docRef.id);
+    }
+
+    return {
+      ...normalizedAnnouncement,
+      id: docRef.id,
+    };
+  }
+
+  await updateDoc(doc(db, 'announcements', normalizedAnnouncement.id), serializeAnnouncement(normalizedAnnouncement));
+
+  if (normalizedAnnouncement.isPinned) {
+    await unpinOtherAnnouncements(normalizedAnnouncement.id);
+  }
+
+  return normalizedAnnouncement;
+}
+
+export async function removeAnnouncement(announcementId) {
+  if (!navigator.onLine) {
+    return;
+  }
+
+  await deleteDoc(doc(db, 'announcements', announcementId));
 }
 
 export async function createTicket(newTicket) {

@@ -67,6 +67,12 @@ function formatPriority(priority) {
 export function renderTicketList(state) {
   const visible = getVisibleTickets();
 
+  if (visible.length === 0) {
+    state.selectedId = null;
+  } else if (!visible.some((ticket) => ticket.id === state.selectedId)) {
+    state.selectedId = null;
+  }
+
   dom.ticketList.textContent = '';
   dom.emptyState.hidden = visible.length > 0;
   dom.emptyState.textContent = state.query.trim() === ''

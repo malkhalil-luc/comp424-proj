@@ -4,20 +4,35 @@
     "title": "Quarterly Support Review",
     "eventType": "Meeting",
     "startsAt": "2026-04-20T15:00:00Z",
-    "location": "Room 302"
+    "location": "Room 302",
+    "description": "Team leads review active support trends, repeat incidents, and staffing needs for the next quarter.",
+    "organizer": "IT Support"
   },
   {
     "id": "evt-002",
     "title": "Security Training Refresh",
     "eventType": "Training",
     "startsAt": "2026-04-22T18:00:00Z",
-    "location": "Online"
+    "location": "Online",
+    "description": "Annual refresher on password hygiene, phishing awareness, and secure handling of employee records.",
+    "organizer": "Information Security"
   },
   {
     "id": "evt-003",
     "title": "Payroll Cutoff",
     "eventType": "Deadline",
     "startsAt": "2026-04-25T22:00:00Z",
-    "location": "HR Portal"
+    "location": "HR Portal",
+    "description": "Final deadline for managers to approve hours and reimbursements before payroll is processed.",
+    "organizer": "Finance"
+  },
+  {
+    "id": "evt-004",
+    "title": "Memorial Day Office Closure",
+    "eventType": "Holiday",
+    "startsAt": "2026-05-25T13:00:00Z",
+    "location": "All Campuses",
+    "description": "University offices are closed in observance of the holiday. Essential support coverage remains on call.",
+    "organizer": "Operations"
   }
 ]

@@ -18,6 +18,14 @@ export const state = {
   lastLoadedAt: null,
   events: [],
   announcements: [],
+  announcementQuery: '',
+  selectedAnnouncementId: null,
+  showAnnouncementForm: false,
+  editingAnnouncementId: null,
+  employees: [],
+  directoryQuery: '',
+  activeDepartment: 'all',
+  selectedEmployeeId: null,
   weather: null,
   weatherError: '',
 };
@@ -49,6 +57,75 @@ export function getAdminUsers() {
 
 export function getPinnedAnnouncement() {
   return state.announcements.find((announcement) => announcement.isPinned) ?? state.announcements[0] ?? null;
+}
+
+export function getVisibleAnnouncements() {
+  const query = state.announcementQuery.trim().toLowerCase();
+
+  return [...state.announcements]
+    .filter((announcement) => {
+      if (query === '') {
+        return true;
+      }
+
+      return announcement.title.toLowerCase().includes(query)
+        || announcement.body.toLowerCase().includes(query);
+    })
+    .sort((a, b) => {
+      if (a.isPinned !== b.isPinned) {
+        return a.isPinned ? -1 : 1;
+      }
+
+      return new Date(b.publishedAt) - new Date(a.publishedAt);
+    });
+}
+
+export function getSelectedAnnouncement() {
+  if (!state.selectedAnnouncementId) {
+    return null;
+  }
+
+  return state.announcements.find((announcement) => announcement.id === state.selectedAnnouncementId) ?? null;
+}
+
+export function getDepartmentCounts() {
+  return state.employees.reduce((counts, employee) => {
+    counts[employee.department] = (counts[employee.department] ?? 0) + 1;
+    return counts;
+  }, {});
+}
+
+export function getFilteredEmployees() {
+  const query = state.directoryQuery.trim().toLowerCase();
+
+  return state.employees.filter((employee) => {
+    const matchesDepartment = state.activeDepartment === 'all'
+      || employee.department === state.activeDepartment;
+    if (!matchesDepartment) {
+      return false;
+    }
+
+    if (query === '') {
+      return true;
+    }
+
+    return employee.name.toLowerCase().includes(query)
+      || employee.title.toLowerCase().includes(query)
+      || employee.department.toLowerCase().includes(query)
+      || employee.email.toLowerCase().includes(query);
+  });
+}
+
+export function getVisibleEmployees() {
+  return [...getFilteredEmployees()].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export function getSelectedEmployee() {
+  if (!state.selectedEmployeeId) {
+    return null;
+  }
+
+  return state.employees.find((employee) => employee.id === state.selectedEmployeeId) ?? null;
 }
 
 export function getUpcomingEvents() {

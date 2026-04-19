@@ -26,13 +26,13 @@
         <nav class="sidebar" aria-label="Main navigation">
             <ul class="nav-list" role="list">
                 <li>
-                    <a href="#dashboard" class="nav-link" data-section="dashboard">
+                    <a href="#dashboard" class="nav-link nav-link--active" data-section="dashboard" aria-current="page">
                         <img src="assets/icons/layout-dashboard.svg" alt="" class="nav-icon" />
                         <span class="nav-label">Dashboard</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#support" class="nav-link nav-link--active" data-section="support" aria-current="page">
+                    <a href="#support" class="nav-link" data-section="support">
                         <img src="assets/icons/tickets.svg" alt="" class="nav-icon" />
                         <span class="nav-label">Support</span>
                     </a>
@@ -44,13 +44,13 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link nav-link--disabled" aria-disabled="true" tabindex="-1">
+                    <a href="#announcements" class="nav-link" data-section="announcements">
                         <img src="assets/icons/megaphone.svg" alt="" class="nav-icon" />
                         <span class="nav-label">Announcements</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link nav-link--disabled" aria-disabled="true" tabindex="-1">
+                    <a href="#directory" class="nav-link" data-section="directory">
                         <img src="assets/icons/contact.svg" alt="" class="nav-icon" />
                         <span class="nav-label">Directory</span>
                     </a>
@@ -66,10 +66,10 @@
         </nav>
         <main id="main">
             <section id="login-view" hidden></section>
-            <section id="portal-view">
-                <h1 id="page-title">Support Tickets</h1>
+            <section id="portal-view" hidden>
+                <h1 id="page-title">Dashboard</h1>
                 <section id="dashboard-view" hidden></section>
-                <div class="shell" id="support-view">
+                <div class="shell" id="support-view" hidden>
                     <section class="list-panel" aria-labelledby="list-heading">
                         <h2 id="list-heading" class="sr-only">Tickets List</h2>
 
@@ -130,6 +130,72 @@
                         <h2 id="detail-heading" class="sr-only">Ticket Details</h2>
                         <div id="ticket-detail">
                             <p class="detail-placeholder">Select a ticket to view details.</p>
+                        </div>
+                    </section>
+                </div>
+                <div class="shell" id="announcements-view" hidden>
+                    <section class="list-panel" aria-labelledby="announcements-list-heading">
+                        <h2 id="announcements-list-heading" class="sr-only">Announcements List</h2>
+
+                        <div class="list-controls">
+                            <div id="announcement-search-container"></div>
+                            <button type="button" id="new-announcement-btn" hidden>+ New Announcement</button>
+                        </div>
+
+                        <section id="announcement-form-section" aria-labelledby="announcement-form-heading" hidden>
+                            <h3 id="announcement-form-heading">Announcement Editor</h3>
+                            <form id="announcement-form" novalidate>
+                                <div class="field">
+                                    <label for="announcement-title">Title</label>
+                                    <input id="announcement-title" name="title" type="text" required
+                                        aria-describedby="announcement-title-error" autocomplete="off" />
+                                    <p id="announcement-title-error" role="alert" aria-live="assertive"></p>
+                                </div>
+                                <div class="field">
+                                    <label for="announcement-body">Message</label>
+                                    <textarea id="announcement-body" name="body" required
+                                        aria-describedby="announcement-body-error"></textarea>
+                                    <p id="announcement-body-error" role="alert" aria-live="assertive"></p>
+                                </div>
+                                <label class="checkbox-field" for="announcement-pinned">
+                                    <input id="announcement-pinned" name="isPinned" type="checkbox" />
+                                    <span>Pin this announcement to the dashboard</span>
+                                </label>
+                                <div class="form-actions">
+                                    <button type="submit">Save</button>
+                                    <button type="button" id="cancel-announcement-btn">Cancel</button>
+                                </div>
+                                <p id="announcement-form-status" role="status" aria-live="polite"></p>
+                                <p id="announcement-form-error" role="alert" aria-live="assertive"></p>
+                            </form>
+                        </section>
+
+                        <ul id="announcement-list" aria-label="Announcements" role="list"></ul>
+                        <p id="announcement-empty-state" hidden>No announcements found.</p>
+                    </section>
+                    <section class="detail-panel" aria-labelledby="announcement-detail-heading">
+                        <h2 id="announcement-detail-heading" class="sr-only">Announcement Details</h2>
+                        <div id="announcement-detail">
+                            <p class="detail-placeholder">Select an announcement to view details.</p>
+                        </div>
+                    </section>
+                </div>
+                <div class="shell" id="directory-view" hidden>
+                    <section class="list-panel" aria-labelledby="directory-list-heading">
+                        <h2 id="directory-list-heading" class="sr-only">Employee Directory</h2>
+
+                        <div class="list-controls">
+                            <div id="directory-search-container"></div>
+                            <div id="directory-filter-container"></div>
+                        </div>
+
+                        <ul id="directory-list" aria-label="Employee directory" role="list"></ul>
+                        <p id="directory-empty-state" hidden>No employees found.</p>
+                    </section>
+                    <section class="detail-panel" aria-labelledby="directory-detail-heading">
+                        <h2 id="directory-detail-heading" class="sr-only">Employee Details</h2>
+                        <div id="directory-detail">
+                            <p class="detail-placeholder">Select an employee to view details.</p>
                         </div>
                     </section>
                 </div>

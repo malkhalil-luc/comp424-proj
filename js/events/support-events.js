@@ -1,6 +1,9 @@
 import { dom } from '../dom.js';
 import { createTicket, persistTickets, saveTicketChanges } from '../api.js';
 import {
+  canManageTicket,
+  canReplyToTicket,
+  canReopenTicket,
   getCurrentUser,
   getSelectedTicket,
 } from '../state.js';
@@ -158,7 +161,7 @@ export function bindSupportEvents(state, render) {
     }
 
     const selectedTicket = getSelectedTicket();
-    if (!selectedTicket) {
+    if (!selectedTicket || !canReopenTicket(selectedTicket)) {
       return;
     }
 
@@ -184,7 +187,7 @@ export function bindSupportEvents(state, render) {
       event.preventDefault();
 
       const selectedTicket = getSelectedTicket();
-      if (!selectedTicket) {
+      if (!selectedTicket || !canReplyToTicket(selectedTicket)) {
         return;
       }
 
@@ -214,7 +217,7 @@ export function bindSupportEvents(state, render) {
       event.preventDefault();
 
       const selectedTicket = getSelectedTicket();
-      if (!selectedTicket) {
+      if (!selectedTicket || !canManageTicket(selectedTicket)) {
         return;
       }
 

@@ -3,11 +3,22 @@ import { FilterChips } from './components/filter-chips.js';
 import { LoginPanel } from './components/login-panel.js';
 import { SearchBar } from './components/search-bar.js';
 import {
+  getDepartmentCounts,
   getAccessibleTickets,
   getCurrentUser,
+  getSelectedTicket,
   getTicketStatusCounts,
+  getSelectedAnnouncement,
 } from './state.js';
 import { renderDashboard } from './render/dashboard-render.js';
+import {
+  renderDirectoryDetail,
+  renderDirectoryList,
+} from './render/directory-render.js';
+import {
+  renderAnnouncementDetail,
+  renderAnnouncementList,
+} from './render/announcements-render.js';
 import { renderTicketDetail, renderTicketList } from './render/support-render.js';
 
 function renderSessionBar(currentUser, onLogout) {
@@ -32,6 +43,34 @@ function renderSessionBar(currentUser, onLogout) {
   dom.topBarWidgets.replaceChildren(wrapper);
 }
 
+function renderAnnouncementForm(state) {
+  const currentUser = getCurrentUser();
+  if (currentUser?.role !== 'admin') {
+    dom.newAnnouncementBtn.hidden = true;
+    dom.announcementFormSection.hidden = true;
+    return;
+  }
+
+  dom.newAnnouncementBtn.hidden = false;
+  dom.announcementFormSection.hidden = !state.showAnnouncementForm;
+
+  if (!state.showAnnouncementForm) {
+    return;
+  }
+
+  const editingAnnouncement = state.editingAnnouncementId
+    ? state.announcements.find((announcement) => announcement.id === state.editingAnnouncementId) ?? null
+    : null;
+  if (state.editingAnnouncementId && editingAnnouncement) {
+    dom.announcementTitleInput.value = editingAnnouncement.title;
+    dom.announcementBodyInput.value = editingAnnouncement.body;
+    dom.announcementPinnedInput.checked = editingAnnouncement.isPinned;
+  } else {
+    dom.announcementForm.reset();
+    dom.announcementPinnedInput.checked = false;
+  }
+}
+
 export function render(state, handlers) {
   const currentUser = getCurrentUser();
 
@@ -53,8 +92,9 @@ export function render(state, handlers) {
   }
 
   dom.sidebar.hidden = false;
+  dom.sidebarBackdrop.hidden = false;
   dom.sidebarToggle.hidden = false;
-  dom.portalView.hidden = false;
+  dom.portalView.hidden = true;
   dom.loginView.hidden = true;
 
   renderSessionBar(currentUser, handlers.onLogout);
@@ -73,18 +113,85 @@ export function render(state, handlers) {
     dom.pageTitle.textContent = 'Dashboard';
     dom.dashboardView.hidden = false;
     dom.supportView.hidden = true;
+    dom.announcementsView.hidden = true;
+    dom.directoryView.hidden = true;
     dom.dashboardView.replaceChildren(renderDashboard(state));
+    dom.portalView.hidden = false;
+    return;
+  }
+
+  if (state.activeSection === 'announcements') {
+    dom.pageTitle.textContent = 'Announcements';
+    dom.dashboardView.hidden = true;
+    dom.supportView.hidden = true;
+    dom.announcementsView.hidden = false;
+    dom.directoryView.hidden = true;
+
+    SearchBar(dom.announcementSearchContainer, {
+      query: state.announcementQuery,
+      onInput: handlers.onAnnouncementSearchInput,
+      onClear: handlers.onAnnouncementSearchClear,
+      inputId: 'announcement-search',
+      labelText: 'Search announcements',
+      placeholder: 'Search announcements...',
+    });
+
+    renderAnnouncementForm(state);
+    renderAnnouncementList(state);
+    renderAnnouncementDetail(state);
+    dom.portalView.hidden = false;
+    return;
+  }
+
+  if (state.activeSection === 'directory') {
+    dom.pageTitle.textContent = 'Directory';
+    dom.dashboardView.hidden = true;
+    dom.supportView.hidden = true;
+    dom.announcementsView.hidden = true;
+    dom.directoryView.hidden = false;
+
+    SearchBar(dom.directorySearchContainer, {
+      query: state.directoryQuery,
+      onInput: handlers.onDirectorySearchInput,
+      onClear: handlers.onDirectorySearchClear,
+      inputId: 'directory-search',
+      labelText: 'Search directory',
+      placeholder: 'Search employees...',
+    });
+
+    const departmentCounts = getDepartmentCounts();
+    FilterChips(dom.directoryFilterContainer, {
+      chips: [
+        { value: 'all', label: `All (${state.employees.length})` },
+        ...Object.entries(departmentCounts).map(([department, count]) => ({
+          value: department,
+          label: `${department} (${count})`,
+        })),
+      ],
+      activeValue: state.activeDepartment,
+      onChange: handlers.onDepartmentChange,
+      ariaLabel: 'Filter employees by department',
+    });
+
+    renderDirectoryList(state);
+    renderDirectoryDetail();
+    dom.portalView.hidden = false;
     return;
   }
 
   dom.pageTitle.textContent = 'Support Tickets';
   dom.dashboardView.hidden = true;
   dom.supportView.hidden = false;
+  dom.announcementsView.hidden = true;
+  dom.directoryView.hidden = true;
 
   SearchBar(dom.searchBarContainer, {
     query: state.query,
     onInput: handlers.onSearchInput,
     onClear: handlers.onSearchClear,
+    inputId: 'ticket-search',
+    labelText: 'Search tickets',
+    placeholder: 'Search tickets...',
   });
 
   const accessibleTickets = getAccessibleTickets();
@@ -112,7 +219,7 @@ export function render(state, handlers) {
   dom.staleDataBanner.textContent = state.staleNotice;
 
   dom.newTicketFormSection.hidden = state.isLoading || !state.showNewTicketForm;
-  dom.shell.classList.toggle('detail-view-active', Boolean(state.selectedId));
+  dom.supportShell.classList.toggle('detail-view-active', Boolean(getSelectedTicket()));
 
 
   if (state.isLoading) {
@@ -132,6 +239,7 @@ export function render(state, handlers) {
     loadingDetail.className = 'detail-placeholder';
     loadingDetail.textContent = 'Loading details...';
     dom.ticketDetail.append(loadingDetail);
+    dom.portalView.hidden = false;
     return;
   }
 
@@ -146,9 +254,11 @@ export function render(state, handlers) {
     placeholder.className = 'detail-placeholder';
     placeholder.textContent = 'Retry loading to continue.';
     dom.ticketDetail.append(placeholder);
+    dom.portalView.hidden = false;
     return;
   }
 
   renderTicketList(state);
   renderTicketDetail(state, handlers.onBackFromDetail, currentUser);
+  dom.portalView.hidden = false;
 }

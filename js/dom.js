@@ -20,8 +20,8 @@ export const dom = {
   get ticketDetail() {
     return document.querySelector('#ticket-detail');
   },
-  get shell() {
-    return document.querySelector('.shell');
+  get supportShell() {
+    return document.querySelector('#support-view');
   },
   get emptyState() {
     return document.querySelector('#empty-state');
@@ -41,8 +41,17 @@ export const dom = {
   get searchBarContainer() {
     return document.querySelector('#search-bar-container');
   },
+  get announcementSearchContainer() {
+    return document.querySelector('#announcement-search-container');
+  },
+  get directorySearchContainer() {
+    return document.querySelector('#directory-search-container');
+  },
   get ticketFilterContainer() {
     return document.querySelector('#ticket-filter-container');
+  },
+  get directoryFilterContainer() {
+    return document.querySelector('#directory-filter-container');
   },
   get ticketSortSelect() {
     return document.querySelector('#ticket-sort');
@@ -83,6 +92,57 @@ export const dom = {
   get topBarWidgets() {
     return document.querySelector('.top-bar-widgets');
   },
+  get announcementList() {
+    return document.querySelector('#announcement-list');
+  },
+  get announcementDetail() {
+    return document.querySelector('#announcement-detail');
+  },
+  get announcementEmptyState() {
+    return document.querySelector('#announcement-empty-state');
+  },
+  get newAnnouncementBtn() {
+    return document.querySelector('#new-announcement-btn');
+  },
+  get announcementFormSection() {
+    return document.querySelector('#announcement-form-section');
+  },
+  get announcementForm() {
+    return document.querySelector('#announcement-form');
+  },
+  get cancelAnnouncementBtn() {
+    return document.querySelector('#cancel-announcement-btn');
+  },
+  get announcementTitleInput() {
+    return document.querySelector('#announcement-title');
+  },
+  get announcementBodyInput() {
+    return document.querySelector('#announcement-body');
+  },
+  get announcementPinnedInput() {
+    return document.querySelector('#announcement-pinned');
+  },
+  get announcementTitleError() {
+    return document.querySelector('#announcement-title-error');
+  },
+  get announcementBodyError() {
+    return document.querySelector('#announcement-body-error');
+  },
+  get announcementFormStatus() {
+    return document.querySelector('#announcement-form-status');
+  },
+  get announcementFormError() {
+    return document.querySelector('#announcement-form-error');
+  },
+  get directoryList() {
+    return document.querySelector('#directory-list');
+  },
+  get directoryDetail() {
+    return document.querySelector('#directory-detail');
+  },
+  get directoryEmptyState() {
+    return document.querySelector('#directory-empty-state');
+  },
   get loginView() {
     return document.querySelector('#login-view');
   },
@@ -94,6 +154,12 @@ export const dom = {
   },
   get supportView() {
     return document.querySelector('#support-view');
+  },
+  get announcementsView() {
+    return document.querySelector('#announcements-view');
+  },
+  get directoryView() {
+    return document.querySelector('#directory-view');
   },
   get pageTitle() {
     return document.querySelector('#page-title');

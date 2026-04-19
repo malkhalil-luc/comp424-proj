@@ -1,0 +1,62 @@
+[
+  {
+    "id": "emp-001",
+    "name": "Maya Patel",
+    "title": "Marketing Coordinator",
+    "department": "Marketing",
+    "email": "maya.patel@company.test",
+    "phone": "(312) 555-0142",
+    "office": "Lake Shore 410",
+    "bio": "Coordinates campaign schedules, internal launch materials, and vendor requests for the marketing team."
+  },
+  {
+    "id": "emp-002",
+    "name": "Jordan Lee",
+    "title": "Payroll Analyst",
+    "department": "Finance",
+    "email": "jordan.lee@company.test",
+    "phone": "(312) 555-0194",
+    "office": "Water Tower 203",
+    "bio": "Supports payroll operations, monthly reporting, and employee reimbursement processing."
+  },
+  {
+    "id": "emp-003",
+    "name": "Alex Chen",
+    "title": "Support Lead",
+    "department": "IT Support",
+    "email": "alex.chen@company.test",
+    "phone": "(312) 555-0111",
+    "office": "Lake Shore 118",
+    "bio": "Leads the service desk and coordinates escalations for hardware, software, and access issues."
+  },
+  {
+    "id": "emp-004",
+    "name": "Priya Singh",
+    "title": "Operations Manager",
+    "department": "Operations",
+    "email": "priya.singh@company.test",
+    "phone": "(312) 555-0176",
+    "office": "Lake Shore 212",
+    "bio": "Oversees office operations, vendor coordination, and campus logistics for employee services."
+  },
+  {
+    "id": "emp-005",
+    "name": "Daniel Torres",
+    "title": "Learning Specialist",
+    "department": "Human Resources",
+    "email": "daniel.torres@company.test",
+    "phone": "(312) 555-0189",
+    "office": "Water Tower 145",
+    "bio": "Designs onboarding sessions, training materials, and internal workshops for new employees."
+  },
+  {
+    "id": "emp-006",
+    "name": "Grace Kim",
+    "title": "Project Coordinator",
+    "department": "Operations",
+    "email": "grace.kim@company.test",
+    "phone": "(312) 555-0127",
+    "office": "Lake Shore 214",
+    "bio": "Tracks project timelines, meeting notes, and cross-team coordination for operational initiatives."
+  }
+]
