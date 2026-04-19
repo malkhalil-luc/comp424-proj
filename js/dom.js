@@ -1,22 +1,101 @@
-export const appShell = document.querySelector('.app-shell');
-export const sidebarToggle = document.querySelector('#sidebar-toggle');
-export const sidebarBackdrop = document.querySelector('#sidebar-backdrop');
-export const ticketList = document.querySelector('#ticket-list');
-export const ticketDetail = document.querySelector('#ticket-detail');
-export const shell = document.querySelector('.shell');
-export const emptyState = document.querySelector('#empty-state');
-export const loadErrorBanner = document.querySelector('#load-error-banner');
-export const loadErrorMessage = document.querySelector('#load-error-message');
-export const retryLoadBtn = document.querySelector('#retry-load-btn');
-export const staleDataBanner = document.querySelector('#stale-data-banner');
-export const searchBarContainer = document.querySelector('#search-bar-container');
-export const newTicketBtn = document.querySelector('#new-ticket-btn');
-export const newTicketFormSection = document.querySelector('#new-ticket-form-section');
-export const newTicketForm = document.querySelector('#new-ticket-form');
-export const cancelTicketBtn = document.querySelector('#cancel-ticket-btn');
-export const titleInput = document.querySelector('#ticket-title');
-export const descriptionInput = document.querySelector('#ticket-description');
-export const titleError = document.querySelector('#ticket-title-error');
-export const descriptionError = document.querySelector('#ticket-description-error');
-export const formStatus = document.querySelector('#form-status');
-export const formError = document.querySelector('#form-error');
+export const dom = {
+  get appShell() {
+    return document.querySelector('.app-shell');
+  },
+  get sidebarToggle() {
+    return document.querySelector('#sidebar-toggle');
+  },
+  get sidebarBackdrop() {
+    return document.querySelector('#sidebar-backdrop');
+  },
+  get sidebar() {
+    return document.querySelector('.sidebar');
+  },
+  get navLinks() {
+    return document.querySelectorAll('.nav-link[data-section]');
+  },
+  get ticketList() {
+    return document.querySelector('#ticket-list');
+  },
+  get ticketDetail() {
+    return document.querySelector('#ticket-detail');
+  },
+  get shell() {
+    return document.querySelector('.shell');
+  },
+  get emptyState() {
+    return document.querySelector('#empty-state');
+  },
+  get loadErrorBanner() {
+    return document.querySelector('#load-error-banner');
+  },
+  get loadErrorMessage() {
+    return document.querySelector('#load-error-message');
+  },
+  get retryLoadBtn() {
+    return document.querySelector('#retry-load-btn');
+  },
+  get staleDataBanner() {
+    return document.querySelector('#stale-data-banner');
+  },
+  get searchBarContainer() {
+    return document.querySelector('#search-bar-container');
+  },
+  get ticketFilterContainer() {
+    return document.querySelector('#ticket-filter-container');
+  },
+  get ticketSortSelect() {
+    return document.querySelector('#ticket-sort');
+  },
+  get newTicketBtn() {
+    return document.querySelector('#new-ticket-btn');
+  },
+  get newTicketFormSection() {
+    return document.querySelector('#new-ticket-form-section');
+  },
+  get newTicketForm() {
+    return document.querySelector('#new-ticket-form');
+  },
+  get cancelTicketBtn() {
+    return document.querySelector('#cancel-ticket-btn');
+  },
+  get titleInput() {
+    return document.querySelector('#ticket-title');
+  },
+  get descriptionInput() {
+    return document.querySelector('#ticket-description');
+  },
+  get priorityInput() {
+    return document.querySelector('#ticket-priority');
+  },
+  get titleError() {
+    return document.querySelector('#ticket-title-error');
+  },
+  get descriptionError() {
+    return document.querySelector('#ticket-description-error');
+  },
+  get formStatus() {
+    return document.querySelector('#form-status');
+  },
+  get formError() {
+    return document.querySelector('#form-error');
+  },
+  get topBarWidgets() {
+    return document.querySelector('.top-bar-widgets');
+  },
+  get loginView() {
+    return document.querySelector('#login-view');
+  },
+  get portalView() {
+    return document.querySelector('#portal-view');
+  },
+  get dashboardView() {
+    return document.querySelector('#dashboard-view');
+  },
+  get supportView() {
+    return document.querySelector('#support-view');
+  },
+  get pageTitle() {
+    return document.querySelector('#page-title');
+  },
+};

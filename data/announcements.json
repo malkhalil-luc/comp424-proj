@@ -1,0 +1,16 @@
+[
+  {
+    "id": "ann-001",
+    "title": "VPN maintenance window this Friday",
+    "body": "IT will perform VPN maintenance Friday from 9:00 PM to 10:30 PM. Remote staff may experience brief disconnects.",
+    "isPinned": true,
+    "publishedAt": "2026-04-18T09:00:00Z"
+  },
+  {
+    "id": "ann-002",
+    "title": "Updated printer supply request form",
+    "body": "The office supply request form has moved to the operations workspace and now includes toner requests.",
+    "isPinned": false,
+    "publishedAt": "2026-04-17T14:00:00Z"
+  }
+]

@@ -1,5 +1,6 @@
 const STORAGE_KEY = 'portal-tickets-v1';
 const STORAGE_SAVED_AT_KEY = 'portal-tickets-saved-at-v1';
+const SESSION_USER_KEY = 'portal-session-user-v1';
 
 export function loadTicketsFromStorage() {
   try {
@@ -37,5 +38,30 @@ export function saveTicketsToStorage(tickets) {
     localStorage.setItem(STORAGE_SAVED_AT_KEY, new Date().toISOString());
   } catch (err) {
     console.warn('localStorage write failed:', err);
+  }
+}
+
+export function loadSessionUserId() {
+  try {
+    return localStorage.getItem(SESSION_USER_KEY);
+  } catch (err) {
+    console.warn('localStorage session read failed:', err);
+    return null;
+  }
+}
+
+export function saveSessionUserId(userId) {
+  try {
+    localStorage.setItem(SESSION_USER_KEY, userId);
+  } catch (err) {
+    console.warn('localStorage session write failed:', err);
+  }
+}
+
+export function clearSessionUserId() {
+  try {
+    localStorage.removeItem(SESSION_USER_KEY);
+  } catch (err) {
+    console.warn('localStorage session clear failed:', err);
   }
 }

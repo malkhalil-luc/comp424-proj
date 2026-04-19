@@ -26,15 +26,15 @@
         <nav class="sidebar" aria-label="Main navigation">
             <ul class="nav-list" role="list">
                 <li>
-                    <a href="#support" class="nav-link nav-link--active" aria-current="page">
-                        <img src="assets/icons/tickets.svg" alt="" class="nav-icon" />
-                        <span class="nav-label">Support</span>
+                    <a href="#dashboard" class="nav-link" data-section="dashboard">
+                        <img src="assets/icons/layout-dashboard.svg" alt="" class="nav-icon" />
+                        <span class="nav-label">Dashboard</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link nav-link--disabled" aria-disabled="true" tabindex="-1">
-                        <img src="assets/icons/layout-dashboard.svg" alt="" class="nav-icon" />
-                        <span class="nav-label">Dashboard</span>
+                    <a href="#support" class="nav-link nav-link--active" data-section="support" aria-current="page">
+                        <img src="assets/icons/tickets.svg" alt="" class="nav-icon" />
+                        <span class="nav-label">Support</span>
                     </a>
                 </li>
                 <li>
@@ -65,58 +65,75 @@
             </ul>
         </nav>
         <main id="main">
-            <h1>Support Tickets</h1>
-            <div class="shell">
-                <section class="list-panel" aria-labelledby="list-heading">
-                    <h2 id="list-heading" class="sr-only">Tickets List</h2>
+            <section id="login-view" hidden></section>
+            <section id="portal-view">
+                <h1 id="page-title">Support Tickets</h1>
+                <section id="dashboard-view" hidden></section>
+                <div class="shell" id="support-view">
+                    <section class="list-panel" aria-labelledby="list-heading">
+                        <h2 id="list-heading" class="sr-only">Tickets List</h2>
 
-                    <div class="list-controls">
-                        <div id="search-bar-container"></div>
-                        <button type="button" id="new-ticket-btn">+ Create New Ticket</button>
-                    </div>
+                        <div class="list-controls">
+                            <div id="search-bar-container"></div>
+                            <div id="ticket-filter-container"></div>
+                            <label for="ticket-sort" class="sr-only">Sort tickets</label>
+                            <select id="ticket-sort">
+                                <option value="newest">Newest</option>
+                                <option value="oldest">Oldest</option>
+                                <option value="priority">Priority</option>
+                            </select>
+                            <button type="button" id="new-ticket-btn">+ Create New Ticket</button>
+                        </div>
 
-                    <section id="new-ticket-form-section" aria-labelledby="form-heading" hidden>
-                        <h3 id="form-heading">Submit New Ticket</h3>
-                        <form id="new-ticket-form" novalidate>
-                            <div class="field">
-                                <label for="ticket-title">Title</label>
-                                <input id="ticket-title" name="title" type="text" required
-                                    aria-describedby="ticket-title-error" autocomplete="off" />
-                                <p id="ticket-title-error" role="alert" aria-live="assertive"></p>
-                            </div>
-                            <div class="field">
-                                <label for="ticket-description">Description</label>
-                                <textarea id="ticket-description" name="description" required
-                                    aria-describedby="ticket-description-error"></textarea>
-                                <p id="ticket-description-error" role="alert" aria-live="assertive"></p>
-                            </div>
-                            <div class="form-actions">
-                                <button type="submit">Submit</button>
-                                <button type="button" id="cancel-ticket-btn">Cancel</button>
-                            </div>
-                            <p id="form-status" role="status" aria-live="polite"></p>
-                            <p id="form-error" role="alert" aria-live="assertive"></p>
-                        </form>
+                        <section id="new-ticket-form-section" aria-labelledby="form-heading" hidden>
+                            <h3 id="form-heading">Submit New Ticket</h3>
+                            <form id="new-ticket-form" novalidate>
+                                <div class="field">
+                                    <label for="ticket-title">Title</label>
+                                    <input id="ticket-title" name="title" type="text" required
+                                        aria-describedby="ticket-title-error" autocomplete="off" />
+                                    <p id="ticket-title-error" role="alert" aria-live="assertive"></p>
+                                </div>
+                                <div class="field">
+                                    <label for="ticket-description">Description</label>
+                                    <textarea id="ticket-description" name="description" required
+                                        aria-describedby="ticket-description-error"></textarea>
+                                    <p id="ticket-description-error" role="alert" aria-live="assertive"></p>
+                                </div>
+                                <div class="field">
+                                    <label for="ticket-priority">Priority</label>
+                                    <select id="ticket-priority" name="priority">
+                                        <option value="low">Low</option>
+                                        <option value="medium" selected>Medium</option>
+                                        <option value="high">High</option>
+                                    </select>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit">Submit</button>
+                                    <button type="button" id="cancel-ticket-btn">Cancel</button>
+                                </div>
+                                <p id="form-status" role="status" aria-live="polite"></p>
+                                <p id="form-error" role="alert" aria-live="assertive"></p>
+                            </form>
+                        </section>
+
+                        <div id="load-error-banner" role="alert" hidden>
+                            <p id="load-error-message"></p>
+                            <button type="button" id="retry-load-btn">Try Again</button>
+                        </div>
+                        <p id="stale-data-banner" role="status" hidden></p>
+                        <ul id="ticket-list" aria-label="Support tickets" role="list">
+                        </ul>
+                        <p id="empty-state" hidden>No results found.</p>
                     </section>
-
-                    <div id="load-error-banner" role="alert" hidden>
-                        <p id="load-error-message"></p>
-                        <button type="button" id="retry-load-btn">Try Again</button>
-                    </div>
-                    <p id="stale-data-banner" role="status" hidden></p>
-                    <ul id="ticket-list" aria-label="Support tickets" role="list">
-                    </ul>
-                    <p id="empty-state" hidden>No results found.</p>
-
-
-                </section>
-                <section class="detail-panel" aria-labelledby="detail-heading">
-                    <h2 id="detail-heading" class="sr-only">Ticket Details</h2>
-                    <div id="ticket-detail">
-                        <p class="detail-placeholder">Select a ticket to view details.</p>
-                    </div>
-                </section>
-            </div>
+                    <section class="detail-panel" aria-labelledby="detail-heading">
+                        <h2 id="detail-heading" class="sr-only">Ticket Details</h2>
+                        <div id="ticket-detail">
+                            <p class="detail-placeholder">Select a ticket to view details.</p>
+                        </div>
+                    </section>
+                </div>
+            </section>
         </main>
     </div>
     <footer>

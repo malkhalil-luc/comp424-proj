@@ -3,28 +3,112 @@
     "id": "t-001",
     "title": "Laptop not connecting to VPN",
     "description": "My laptop stopped connecting to the company VPN since this morning. I have tried restarting but the issue persists.",
+    "priority": "high",
     "ticketStatus": "Open",
-    "createdAt": "2026-03-01T09:15:00Z"
+    "createdAt": "2026-03-01T09:15:00Z",
+    "updatedAt": "2026-03-01T09:15:00Z",
+    "createdByUserId": "staff-001",
+    "assignedAgentId": "admin-001",
+    "closedAt": null,
+    "messages": [
+      {
+        "id": "msg-001",
+        "authorId": "staff-001",
+        "authorRole": "staff",
+        "body": "My laptop stopped connecting to the company VPN since this morning. I have tried restarting but the issue persists.",
+        "createdAt": "2026-03-01T09:15:00Z",
+        "kind": "ticket"
+      },
+      {
+        "id": "msg-002",
+        "authorId": "admin-001",
+        "authorRole": "admin",
+        "body": "Thanks for reporting this. I assigned the case to myself and I am checking VPN access logs now.",
+        "createdAt": "2026-03-01T09:40:00Z",
+        "kind": "reply"
+      }
+    ]
   },
   {
     "id": "t-002",
     "title": "Email not syncing on mobile",
     "description": "Company emails are not syncing on my work phone. Last sync was two days ago.",
+    "priority": "medium",
     "ticketStatus": "In Progress",
-    "createdAt": "2026-03-02T11:30:00Z"
+    "createdAt": "2026-03-02T11:30:00Z",
+    "updatedAt": "2026-03-02T13:05:00Z",
+    "createdByUserId": "staff-002",
+    "assignedAgentId": "admin-002",
+    "closedAt": null,
+    "messages": [
+      {
+        "id": "msg-003",
+        "authorId": "staff-002",
+        "authorRole": "staff",
+        "body": "Company emails are not syncing on my work phone. Last sync was two days ago.",
+        "createdAt": "2026-03-02T11:30:00Z",
+        "kind": "ticket"
+      },
+      {
+        "id": "msg-004",
+        "authorId": "admin-002",
+        "authorRole": "admin",
+        "body": "I reset the mobile sync profile and moved this ticket to in progress. Please retry after signing out and back in.",
+        "createdAt": "2026-03-02T13:05:00Z",
+        "kind": "reply"
+      }
+    ]
   },
   {
     "id": "t-003",
     "title": "Cannot access shared drive",
     "description": "Getting a permissions error when trying to open the shared marketing drive. Was working last week.",
+    "priority": "high",
     "ticketStatus": "Open",
-    "createdAt": "2026-03-03T14:00:00Z"
+    "createdAt": "2026-03-03T14:00:00Z",
+    "updatedAt": "2026-03-03T14:00:00Z",
+    "createdByUserId": "staff-001",
+    "assignedAgentId": null,
+    "closedAt": null,
+    "messages": [
+      {
+        "id": "msg-005",
+        "authorId": "staff-001",
+        "authorRole": "staff",
+        "body": "Getting a permissions error when trying to open the shared marketing drive. Was working last week.",
+        "createdAt": "2026-03-03T14:00:00Z",
+        "kind": "ticket"
+      }
+    ]
   },
   {
     "id": "t-004",
     "title": "Printer offline in Room 204",
     "description": "The printer on the second floor Room 204 shows as offline. Multiple people in the team are affected.",
+    "priority": "low",
     "ticketStatus": "Closed",
-    "createdAt": "2026-03-04T08:45:00Z"
+    "createdAt": "2026-03-04T08:45:00Z",
+    "updatedAt": "2026-03-04T10:00:00Z",
+    "createdByUserId": "staff-002",
+    "assignedAgentId": "admin-001",
+    "closedAt": "2026-03-04T10:00:00Z",
+    "messages": [
+      {
+        "id": "msg-006",
+        "authorId": "staff-002",
+        "authorRole": "staff",
+        "body": "The printer on the second floor Room 204 shows as offline. Multiple people in the team are affected.",
+        "createdAt": "2026-03-04T08:45:00Z",
+        "kind": "ticket"
+      },
+      {
+        "id": "msg-007",
+        "authorId": "admin-001",
+        "authorRole": "admin",
+        "body": "The printer was reconnected to the network and test pages printed successfully. Closing this ticket.",
+        "createdAt": "2026-03-04T10:00:00Z",
+        "kind": "reply"
+      }
+    ]
   }
 ]

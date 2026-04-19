@@ -1,0 +1,23 @@
+[
+  {
+    "id": "evt-001",
+    "title": "Quarterly Support Review",
+    "eventType": "Meeting",
+    "startsAt": "2026-04-20T15:00:00Z",
+    "location": "Room 302"
+  },
+  {
+    "id": "evt-002",
+    "title": "Security Training Refresh",
+    "eventType": "Training",
+    "startsAt": "2026-04-22T18:00:00Z",
+    "location": "Online"
+  },
+  {
+    "id": "evt-003",
+    "title": "Payroll Cutoff",
+    "eventType": "Deadline",
+    "startsAt": "2026-04-25T22:00:00Z",
+    "location": "HR Portal"
+  }
+]
