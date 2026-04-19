@@ -2,6 +2,7 @@ import { state } from './state.js';
 import { render } from './render.js';
 import { bindAppEvents } from './events/app-events.js';
 import { bindAnnouncementsEvents } from './events/announcements-events.js';
+import { bindCalendarEvents } from './events/calendar-events.js';
 import { bindDirectoryEvents } from './events/directory-events.js';
 import { bindSupportEvents } from './events/support-events.js';
 import {
@@ -38,6 +39,9 @@ if (
   || !dom.directoryView
   || !dom.directoryList
   || !dom.directoryDetail
+  || !dom.calendarView
+  || !dom.calendarList
+  || !dom.calendarDetail
 ) {
   throw new Error('main.js: Missing critical content elements — check HTML');
 }
@@ -56,6 +60,9 @@ function resetPortalUi() {
   state.directoryQuery = '';
   state.activeDepartment = 'all';
   state.selectedEmployeeId = null;
+  state.calendarQuery = '';
+  state.activeEventType = 'all';
+  state.selectedEventId = null;
 }
 
 function renderAppState() {
@@ -95,6 +102,18 @@ function renderAppState() {
     },
     onDepartmentChange: (value) => {
       state.activeDepartment = value;
+      renderAppState();
+    },
+    onCalendarSearchInput: (value) => {
+      state.calendarQuery = value;
+      renderAppState();
+    },
+    onCalendarSearchClear: () => {
+      state.calendarQuery = '';
+      renderAppState();
+    },
+    onEventTypeChange: (value) => {
+      state.activeEventType = value;
       renderAppState();
     },
     onLoginUserChange: (userId) => {
@@ -142,10 +161,12 @@ async function loadDashboardState() {
   try {
     const result = await loadDashboardData();
     state.events = result.events;
+    state.selectedEventId = result.events[0]?.id ?? null;
     state.weather = result.weather;
     state.weatherError = result.weatherError;
   } catch {
     state.events = [];
+    state.selectedEventId = null;
     state.weather = null;
     state.weatherError = 'Weather data is currently unavailable.';
   }
@@ -180,6 +201,7 @@ async function init() {
 
   bindAppEvents(state, renderAppState);
   bindAnnouncementsEvents(state, renderAppState);
+  bindCalendarEvents(state, renderAppState);
   bindDirectoryEvents(state, renderAppState);
   bindSupportEvents(state, renderAppState);
   renderAppState();

@@ -47,11 +47,17 @@ export const dom = {
   get directorySearchContainer() {
     return document.querySelector('#directory-search-container');
   },
+  get calendarSearchContainer() {
+    return document.querySelector('#calendar-search-container');
+  },
   get ticketFilterContainer() {
     return document.querySelector('#ticket-filter-container');
   },
   get directoryFilterContainer() {
     return document.querySelector('#directory-filter-container');
+  },
+  get calendarFilterContainer() {
+    return document.querySelector('#calendar-filter-container');
   },
   get ticketSortSelect() {
     return document.querySelector('#ticket-sort');
@@ -137,11 +143,20 @@ export const dom = {
   get directoryList() {
     return document.querySelector('#directory-list');
   },
+  get calendarList() {
+    return document.querySelector('#calendar-list');
+  },
   get directoryDetail() {
     return document.querySelector('#directory-detail');
   },
+  get calendarDetail() {
+    return document.querySelector('#calendar-detail');
+  },
   get directoryEmptyState() {
     return document.querySelector('#directory-empty-state');
+  },
+  get calendarEmptyState() {
+    return document.querySelector('#calendar-empty-state');
   },
   get loginView() {
     return document.querySelector('#login-view');
@@ -160,6 +175,9 @@ export const dom = {
   },
   get directoryView() {
     return document.querySelector('#directory-view');
+  },
+  get calendarView() {
+    return document.querySelector('#calendar-view');
   },
   get pageTitle() {
     return document.querySelector('#page-title');

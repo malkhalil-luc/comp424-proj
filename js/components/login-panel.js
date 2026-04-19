@@ -21,7 +21,6 @@ export function LoginPanel(container, { users, selectedUserId, onChange, onLogin
 
   const select = document.createElement('select');
   select.name = 'userId';
-  select.value = selectedUserId ?? '';
   select.addEventListener('change', (event) => {
     onChange(event.target.value);
   });
@@ -32,6 +31,8 @@ export function LoginPanel(container, { users, selectedUserId, onChange, onLogin
     option.textContent = `${user.name} (${user.role})`;
     select.append(option);
   });
+
+  select.value = selectedUserId ?? users[0]?.id ?? '';
 
   label.append(caption, select);
 

@@ -3,6 +3,7 @@ import { FilterChips } from './components/filter-chips.js';
 import { LoginPanel } from './components/login-panel.js';
 import { SearchBar } from './components/search-bar.js';
 import {
+  getEventTypeCounts,
   getDepartmentCounts,
   getAccessibleTickets,
   getCurrentUser,
@@ -11,6 +12,10 @@ import {
   getSelectedAnnouncement,
 } from './state.js';
 import { renderDashboard } from './render/dashboard-render.js';
+import {
+  renderCalendarDetail,
+  renderCalendarList,
+} from './render/calendar-render.js';
 import {
   renderDirectoryDetail,
   renderDirectoryList,
@@ -115,6 +120,7 @@ export function render(state, handlers) {
     dom.supportView.hidden = true;
     dom.announcementsView.hidden = true;
     dom.directoryView.hidden = true;
+    dom.calendarView.hidden = true;
     dom.dashboardView.replaceChildren(renderDashboard(state));
     dom.portalView.hidden = false;
     return;
@@ -126,6 +132,7 @@ export function render(state, handlers) {
     dom.supportView.hidden = true;
     dom.announcementsView.hidden = false;
     dom.directoryView.hidden = true;
+    dom.calendarView.hidden = true;
 
     SearchBar(dom.announcementSearchContainer, {
       query: state.announcementQuery,
@@ -149,6 +156,7 @@ export function render(state, handlers) {
     dom.supportView.hidden = true;
     dom.announcementsView.hidden = true;
     dom.directoryView.hidden = false;
+    dom.calendarView.hidden = true;
 
     SearchBar(dom.directorySearchContainer, {
       query: state.directoryQuery,
@@ -179,11 +187,49 @@ export function render(state, handlers) {
     return;
   }
 
+  if (state.activeSection === 'calendar') {
+    dom.pageTitle.textContent = 'Calendar';
+    dom.dashboardView.hidden = true;
+    dom.supportView.hidden = true;
+    dom.announcementsView.hidden = true;
+    dom.directoryView.hidden = true;
+    dom.calendarView.hidden = false;
+
+    SearchBar(dom.calendarSearchContainer, {
+      query: state.calendarQuery,
+      onInput: handlers.onCalendarSearchInput,
+      onClear: handlers.onCalendarSearchClear,
+      inputId: 'calendar-search',
+      labelText: 'Search calendar events',
+      placeholder: 'Search events...',
+    });
+
+    const eventTypeCounts = getEventTypeCounts();
+    FilterChips(dom.calendarFilterContainer, {
+      chips: [
+        { value: 'all', label: `All (${state.events.length})` },
+        ...Object.entries(eventTypeCounts).map(([eventType, count]) => ({
+          value: eventType,
+          label: `${eventType} (${count})`,
+        })),
+      ],
+      activeValue: state.activeEventType,
+      onChange: handlers.onEventTypeChange,
+      ariaLabel: 'Filter events by type',
+    });
+
+    renderCalendarList(state);
+    renderCalendarDetail();
+    dom.portalView.hidden = false;
+    return;
+  }
+
   dom.pageTitle.textContent = 'Support Tickets';
   dom.dashboardView.hidden = true;
   dom.supportView.hidden = false;
   dom.announcementsView.hidden = true;
   dom.directoryView.hidden = true;
+  dom.calendarView.hidden = true;
 
   SearchBar(dom.searchBarContainer, {
     query: state.query,

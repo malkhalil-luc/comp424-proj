@@ -56,7 +56,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link nav-link--disabled" aria-disabled="true" tabindex="-1">
+                    <a href="#calendar" class="nav-link" data-section="calendar">
                         <img src="assets/icons/calendar-days.svg" alt="" class="nav-icon" />
                         <span class="nav-label">Calendar</span>
                     </a>
@@ -196,6 +196,25 @@
                         <h2 id="directory-detail-heading" class="sr-only">Employee Details</h2>
                         <div id="directory-detail">
                             <p class="detail-placeholder">Select an employee to view details.</p>
+                        </div>
+                    </section>
+                </div>
+                <div class="shell" id="calendar-view" hidden>
+                    <section class="list-panel" aria-labelledby="calendar-list-heading">
+                        <h2 id="calendar-list-heading" class="sr-only">Calendar Events</h2>
+
+                        <div class="list-controls">
+                            <div id="calendar-search-container"></div>
+                            <div id="calendar-filter-container"></div>
+                        </div>
+
+                        <ul id="calendar-list" aria-label="Calendar events" role="list"></ul>
+                        <p id="calendar-empty-state" hidden>No events found.</p>
+                    </section>
+                    <section class="detail-panel" aria-labelledby="calendar-detail-heading">
+                        <h2 id="calendar-detail-heading" class="sr-only">Event Details</h2>
+                        <div id="calendar-detail">
+                            <p class="detail-placeholder">Select an event to view details.</p>
                         </div>
                     </section>
                 </div>

@@ -26,6 +26,9 @@ export const state = {
   directoryQuery: '',
   activeDepartment: 'all',
   selectedEmployeeId: null,
+  calendarQuery: '',
+  activeEventType: 'all',
+  selectedEventId: null,
   weather: null,
   weatherError: '',
 };
@@ -132,6 +135,47 @@ export function getUpcomingEvents() {
   return [...state.events]
     .sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt))
     .slice(0, 3);
+}
+
+export function getEventTypeCounts() {
+  return state.events.reduce((counts, event) => {
+    counts[event.eventType] = (counts[event.eventType] ?? 0) + 1;
+    return counts;
+  }, {});
+}
+
+export function getFilteredEvents() {
+  const query = state.calendarQuery.trim().toLowerCase();
+
+  return state.events.filter((event) => {
+    const matchesType = state.activeEventType === 'all'
+      || event.eventType === state.activeEventType;
+    if (!matchesType) {
+      return false;
+    }
+
+    if (query === '') {
+      return true;
+    }
+
+    return event.title.toLowerCase().includes(query)
+      || event.eventType.toLowerCase().includes(query)
+      || event.location.toLowerCase().includes(query)
+      || event.description.toLowerCase().includes(query)
+      || event.organizer.toLowerCase().includes(query);
+  });
+}
+
+export function getVisibleCalendarEvents() {
+  return [...getFilteredEvents()].sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt));
+}
+
+export function getSelectedEvent() {
+  if (!state.selectedEventId) {
+    return null;
+  }
+
+  return state.events.find((event) => event.id === state.selectedEventId) ?? null;
 }
 
 export function getAccessibleTickets() {

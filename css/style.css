@@ -876,6 +876,15 @@ button {
   gap: 0.5rem;
 }
 
+#calendar-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 .ticket-item {
   width: 100%;
   display: flex;
@@ -993,6 +1002,65 @@ button {
   flex-wrap: wrap;
   font-size: 0.78rem;
   color: var(--color-text-muted);
+}
+
+.calendar-item {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.9rem 1rem;
+  background: linear-gradient(180deg, #fdfdfc 0%, #f8f6ef 100%);
+  border: 1px solid #e3d9bc;
+  border-radius: 0.75rem;
+  text-align: left;
+  font-family: inherit;
+  transition: border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.calendar-item:hover {
+  border-color: #8b6f1f;
+  box-shadow: 0 6px 14px rgba(139, 111, 31, 0.14);
+  transform: translateY(-1px);
+}
+
+.calendar-item.is-selected {
+  border-color: #8b6f1f;
+  background: linear-gradient(180deg, #fff9e8 0%, #f9f0cf 100%);
+  box-shadow: 0 0 0 3px rgba(139, 111, 31, 0.16);
+}
+
+.calendar-item-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--color-text-primary);
+}
+
+.calendar-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.calendar-type-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background-color: #f5ecd0;
+  color: #725400;
+  border: 1px solid #d9bf62;
 }
 
 .announcement-badge {
@@ -1313,6 +1381,14 @@ button {
 }
 
 #directory-empty-state {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+#calendar-empty-state {
   text-align: center;
   padding: 2rem 1rem;
   color: var(--color-text-muted);
