@@ -66,8 +66,10 @@ export function getAdminUsers() {
   return state.users.filter(user => user.role === 'admin');
 }
 
-export function getPinnedAnnouncement() {
-  return state.announcements.find((announcement) => announcement.isPinned) ?? null;
+export function getPinnedAnnouncements() {
+  return [...state.announcements]
+    .filter((announcement) => announcement.isPinned)
+    .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
 }
 
 export function getVisibleAnnouncements() {
@@ -344,4 +346,46 @@ export function getDashboardStats() {
     { label: 'High Priority', value: highPriorityTickets },
     { label: 'Upcoming Events', value: getUpcomingEvents().length },
   ];
+}
+
+export function getDashboardPersona() {
+  const currentUser = getCurrentUser();
+  const accessibleTickets = getAccessibleTickets();
+  const pinnedAnnouncements = getPinnedAnnouncements();
+  const nextEvent = getUpcomingEvents()[0] ?? null;
+
+  if (currentUser?.role === 'admin') {
+    const unassignedCount = state.tickets.filter((ticket) => ticket.assignedAgentId == null).length;
+    const inProgressCount = state.tickets.filter((ticket) => ticket.ticketStatus === 'In Progress').length;
+
+    return {
+      eyebrow: 'Admin Workspace',
+      title: currentUser ? `Welcome back, ${currentUser.name}.` : 'Welcome back.',
+      body: 'Keep the support queue moving, publish updates, and watch the portal activity that affects everyone.',
+      highlights: [
+        `${unassignedCount} ticket${unassignedCount === 1 ? '' : 's'} still need an agent.`,
+        `${inProgressCount} ticket${inProgressCount === 1 ? ' is' : 's are'} actively being worked.`,
+        `${pinnedAnnouncements.length} pinned announcement${pinnedAnnouncements.length === 1 ? '' : 's'} are visible on the dashboard.`,
+      ],
+    };
+  }
+
+  const openCount = accessibleTickets.filter((ticket) => ticket.ticketStatus === 'Open').length;
+  const lastUpdatedTicket = [...accessibleTickets]
+    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))[0] ?? null;
+
+  return {
+    eyebrow: 'Staff Workspace',
+    title: currentUser ? `Welcome back, ${currentUser.name}.` : 'Welcome back.',
+    body: 'Track your requests, catch important company updates, and keep an eye on the next event from one place.',
+    highlights: [
+      `${openCount} of your ticket${openCount === 1 ? '' : 's'} ${openCount === 1 ? 'is' : 'are'} currently open.`,
+      lastUpdatedTicket
+        ? `Your most recently updated ticket is "${lastUpdatedTicket.title}".`
+        : 'You do not have any ticket activity yet.',
+      nextEvent
+        ? `Next event: ${nextEvent.title}.`
+        : 'There are no upcoming events scheduled yet.',
+    ],
+  };
 }

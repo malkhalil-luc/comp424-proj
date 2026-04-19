@@ -26,13 +26,13 @@ function replaceAnnouncementInState(state, savedAnnouncement, previousId = saved
     state.announcements.unshift(savedAnnouncement);
   }
 
-  if (savedAnnouncement.isPinned) {
-    state.announcements = state.announcements.map((announcement) =>
-      announcement.id === savedAnnouncement.id
-        ? savedAnnouncement
-        : { ...announcement, isPinned: false }
-    );
-  }
+  state.announcements.sort((a, b) => {
+    if (a.isPinned !== b.isPinned) {
+      return a.isPinned ? -1 : 1;
+    }
+
+    return new Date(b.publishedAt) - new Date(a.publishedAt);
+  });
 
   state.selectedAnnouncementId = savedAnnouncement.id;
 }

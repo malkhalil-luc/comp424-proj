@@ -633,22 +633,6 @@ async function seedNewsFromJson() {
   }
 }
 
-async function unpinOtherAnnouncements(selectedAnnouncementId) {
-  const snapshot = await getDocs(collection(db, 'announcements'));
-
-  for (const announcementDoc of snapshot.docs) {
-    if (announcementDoc.id === selectedAnnouncementId) {
-      continue;
-    }
-
-    if (announcementDoc.data().isPinned === true) {
-      await updateDoc(doc(db, 'announcements', announcementDoc.id), {
-        isPinned: false,
-      });
-    }
-  }
-}
-
 async function unfeatureOtherNewsArticles(selectedArticleId) {
   const snapshot = await getDocs(collection(db, 'news'));
 
@@ -721,10 +705,6 @@ export async function saveAnnouncement(announcement) {
   if (!normalizedAnnouncement.id || normalizedAnnouncement.id.startsWith('ann-')) {
     const docRef = await addDoc(collection(db, 'announcements'), serializeAnnouncement(normalizedAnnouncement));
 
-    if (normalizedAnnouncement.isPinned) {
-      await unpinOtherAnnouncements(docRef.id);
-    }
-
     return {
       ...normalizedAnnouncement,
       id: docRef.id,
@@ -732,10 +712,6 @@ export async function saveAnnouncement(announcement) {
   }
 
   await updateDoc(doc(db, 'announcements', normalizedAnnouncement.id), serializeAnnouncement(normalizedAnnouncement));
-
-  if (normalizedAnnouncement.isPinned) {
-    await unpinOtherAnnouncements(normalizedAnnouncement.id);
-  }
 
   return normalizedAnnouncement;
 }

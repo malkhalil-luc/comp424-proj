@@ -1,7 +1,8 @@
 import {
   getCurrentUser,
+  getDashboardPersona,
   getDashboardStats,
-  getPinnedAnnouncement,
+  getPinnedAnnouncements,
   getUpcomingEvents,
 } from '../state.js';
 
@@ -19,6 +20,19 @@ function formatDateTime(isoString) {
   });
 }
 
+function formatDashboardTimestamp() {
+  const now = new Date();
+
+  return now.toLocaleString(undefined, {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
 function createSectionCard(titleText) {
   const section = document.createElement('section');
   section.className = 'dashboard-section';
@@ -28,6 +42,45 @@ function createSectionCard(titleText) {
   title.textContent = titleText;
 
   section.append(title);
+  return section;
+}
+
+function renderWelcomeBanner() {
+  const persona = getDashboardPersona();
+  const section = document.createElement('section');
+  section.className = 'dashboard-hero';
+
+  const topRow = document.createElement('div');
+  topRow.className = 'dashboard-hero-top';
+
+  const eyebrow = document.createElement('p');
+  eyebrow.className = 'dashboard-hero-eyebrow';
+  eyebrow.textContent = persona.eyebrow;
+
+  const title = document.createElement('h2');
+  title.className = 'dashboard-hero-title';
+  title.textContent = persona.title;
+
+  const body = document.createElement('p');
+  body.className = 'dashboard-hero-body';
+  body.textContent = persona.body;
+
+  const timestamp = document.createElement('p');
+  timestamp.className = 'dashboard-hero-timestamp';
+  timestamp.textContent = formatDashboardTimestamp();
+
+  const highlights = document.createElement('div');
+  highlights.className = 'dashboard-hero-highlights';
+
+  persona.highlights.forEach((itemText) => {
+    const item = document.createElement('p');
+    item.className = 'dashboard-hero-highlight';
+    item.textContent = itemText;
+    highlights.append(item);
+  });
+
+  topRow.append(eyebrow, timestamp);
+  section.append(topRow, title, body, highlights);
   return section;
 }
 
@@ -55,34 +108,45 @@ function renderStatsGrid() {
 }
 
 function renderAnnouncementCard() {
-  const section = createSectionCard('Pinned Announcement');
-  const announcement = getPinnedAnnouncement();
+  const section = createSectionCard('Pinned Announcements');
+  const announcements = getPinnedAnnouncements();
 
-  if (!announcement) {
+  if (announcements.length === 0) {
     const empty = document.createElement('p');
     empty.className = 'dashboard-empty';
-    empty.textContent = 'No announcement is pinned right now.';
+    empty.textContent = 'No announcements are pinned right now.';
     section.append(empty);
     return section;
   }
 
-  const card = document.createElement('article');
-  card.className = 'dashboard-card dashboard-card--announcement';
+  const list = document.createElement('div');
+  list.className = 'dashboard-list';
 
-  const title = document.createElement('h3');
-  title.className = 'dashboard-card-title';
-  title.textContent = announcement.title;
+  announcements.forEach((announcement) => {
+    const item = document.createElement('article');
+    item.className = 'dashboard-list-item dashboard-list-item--announcement';
 
-  const meta = document.createElement('p');
-  meta.className = 'dashboard-card-meta';
-  meta.textContent = `Published ${formatDateTime(announcement.publishedAt)}`;
+    const header = document.createElement('div');
+    header.className = 'dashboard-list-header';
 
-  const body = document.createElement('p');
-  body.className = 'dashboard-card-body';
-  body.textContent = announcement.body;
+    const title = document.createElement('p');
+    title.className = 'dashboard-list-title';
+    title.textContent = announcement.title;
 
-  card.append(title, meta, body);
-  section.append(card);
+    const badge = document.createElement('span');
+    badge.className = 'dashboard-pill dashboard-pill--announcement';
+    badge.textContent = 'Pinned';
+
+    const meta = document.createElement('p');
+    meta.className = 'dashboard-list-meta';
+    meta.textContent = `Published ${formatDateTime(announcement.publishedAt)}`;
+
+    header.append(title, badge);
+    item.append(header, meta);
+    list.append(item);
+  });
+
+  section.append(list);
   return section;
 }
 
@@ -179,6 +243,7 @@ function renderQuickActions() {
 export function renderDashboard(state) {
   const fragment = document.createDocumentFragment();
   fragment.append(
+    renderWelcomeBanner(),
     renderStatsGrid(),
     renderAnnouncementCard(),
     renderEventsCard(),
