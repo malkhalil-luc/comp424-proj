@@ -7,7 +7,9 @@ export function bindDirectoryEvents(state, render) {
       return;
     }
 
-    state.selectedEmployeeId = button.dataset.id;
+    state.selectedEmployeeId = state.selectedEmployeeId === button.dataset.id
+      ? null
+      : button.dataset.id;
     render();
   });
 }

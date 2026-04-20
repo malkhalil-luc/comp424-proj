@@ -25,7 +25,10 @@ export function renderAnnouncementList(state) {
 
   if (visibleAnnouncements.length === 0) {
     state.selectedAnnouncementId = null;
-  } else if (!visibleAnnouncements.some((announcement) => announcement.id === state.selectedAnnouncementId)) {
+  } else if (
+    state.selectedAnnouncementId
+    && !visibleAnnouncements.some((announcement) => announcement.id === state.selectedAnnouncementId)
+  ) {
     state.selectedAnnouncementId = visibleAnnouncements[0].id;
   }
 

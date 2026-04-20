@@ -49,7 +49,9 @@ export function bindNewsEvents(state, render) {
       return;
     }
 
-    state.selectedNewsId = button.dataset.id;
+    state.selectedNewsId = state.selectedNewsId === button.dataset.id
+      ? null
+      : button.dataset.id;
     render();
   });
 

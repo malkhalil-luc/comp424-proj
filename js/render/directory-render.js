@@ -9,7 +9,10 @@ export function renderDirectoryList(state) {
 
   if (visibleEmployees.length === 0) {
     state.selectedEmployeeId = null;
-  } else if (!visibleEmployees.some((employee) => employee.id === state.selectedEmployeeId)) {
+  } else if (
+    state.selectedEmployeeId
+    && !visibleEmployees.some((employee) => employee.id === state.selectedEmployeeId)
+  ) {
     state.selectedEmployeeId = visibleEmployees[0].id;
   }
 

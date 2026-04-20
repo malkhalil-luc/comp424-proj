@@ -40,7 +40,9 @@ export function bindCalendarEvents(state, render) {
       return;
     }
 
-    state.selectedEventId = button.dataset.id;
+    state.selectedEventId = state.selectedEventId === button.dataset.id
+      ? null
+      : button.dataset.id;
     render();
   });
 

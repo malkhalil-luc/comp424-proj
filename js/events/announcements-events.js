@@ -48,7 +48,9 @@ export function bindAnnouncementsEvents(state, render) {
       return;
     }
 
-    state.selectedAnnouncementId = button.dataset.id;
+    state.selectedAnnouncementId = state.selectedAnnouncementId === button.dataset.id
+      ? null
+      : button.dataset.id;
     render();
   });
 

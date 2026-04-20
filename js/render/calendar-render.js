@@ -25,7 +25,10 @@ export function renderCalendarList(state) {
 
   if (visibleEvents.length === 0) {
     state.selectedEventId = null;
-  } else if (!visibleEvents.some((event) => event.id === state.selectedEventId)) {
+  } else if (
+    state.selectedEventId
+    && !visibleEvents.some((event) => event.id === state.selectedEventId)
+  ) {
     state.selectedEventId = visibleEvents[0].id;
   }
 

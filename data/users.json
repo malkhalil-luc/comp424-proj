@@ -1,28 +1,28 @@
 [
   {
     "id": "staff-001",
-    "name": "Maya Patel",
+    "name": "Maya User",
     "role": "staff",
     "email": "maya.patel@company.test",
     "department": "Marketing"
   },
   {
     "id": "staff-002",
-    "name": "Jordan Lee",
+    "name": "Jordan User",
     "role": "staff",
     "email": "jordan.lee@company.test",
     "department": "Finance"
   },
   {
     "id": "admin-001",
-    "name": "Alex Chen",
+    "name": "Mahran Alkhalil",
     "role": "admin",
     "email": "alex.chen@company.test",
     "department": "IT Support"
   },
   {
     "id": "admin-002",
-    "name": "Priya Singh",
+    "name": "Ahmad Halah",
     "role": "admin",
     "email": "priya.singh@company.test",
     "department": "Operations"

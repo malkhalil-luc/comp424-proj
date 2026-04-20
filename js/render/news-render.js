@@ -25,7 +25,10 @@ export function renderNewsList(state) {
 
   if (visibleNews.length === 0) {
     state.selectedNewsId = null;
-  } else if (!visibleNews.some((article) => article.id === state.selectedNewsId)) {
+  } else if (
+    state.selectedNewsId
+    && !visibleNews.some((article) => article.id === state.selectedNewsId)
+  ) {
     state.selectedNewsId = visibleNews[0].id;
   }
 
