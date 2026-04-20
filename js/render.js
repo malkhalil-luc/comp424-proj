@@ -309,13 +309,12 @@ export function render(state, handlers) {
       summaryText: `${getVisibleAnnouncements().length} shown · ${state.announcements.length} total`,
     });
 
+    renderAnnouncementForm(state);
+    renderAnnouncementList(state);
     dom.announcementsView.classList.toggle(
       'detail-view-active',
       Boolean(getSelectedAnnouncement()) && !state.showAnnouncementForm
     );
-
-    renderAnnouncementForm(state);
-    renderAnnouncementList(state);
     if (state.showAnnouncementForm) {
       renderFormPlaceholder(dom.announcementDetail, 'Finish or cancel the announcement form to view details.');
     } else {
@@ -388,13 +387,12 @@ export function render(state, handlers) {
       ariaLabel: 'Filter news by category',
     });
 
+    renderNewsForm(state, currentUser);
+    renderNewsList(state);
     dom.newsView.classList.toggle(
       'detail-view-active',
       Boolean(getSelectedNewsArticle()) && !state.showNewsForm
     );
-
-    renderNewsForm(state, currentUser);
-    renderNewsList(state);
     if (state.showNewsForm) {
       renderFormPlaceholder(dom.newsDetail, 'Finish or cancel the news form to view details.');
     } else {
@@ -465,12 +463,11 @@ export function render(state, handlers) {
       ariaLabel: 'Filter employees by department',
     });
 
+    renderDirectoryList(state);
     dom.directoryView.classList.toggle(
       'detail-view-active',
       Boolean(getSelectedEmployee())
     );
-
-    renderDirectoryList(state);
     renderDirectoryDetail(handlers.onBackFromDirectoryDetail);
     dom.portalView.hidden = false;
     return;
@@ -539,13 +536,12 @@ export function render(state, handlers) {
       ariaLabel: 'Filter events by type',
     });
 
+    renderEventForm(state, currentUser);
+    renderCalendarList(state);
     dom.calendarView.classList.toggle(
       'detail-view-active',
       Boolean(getSelectedEvent()) && !state.showEventForm
     );
-
-    renderEventForm(state, currentUser);
-    renderCalendarList(state);
     if (state.showEventForm) {
       renderFormPlaceholder(dom.calendarDetail, 'Finish or cancel the event form to view details.');
     } else {
