@@ -109,4 +109,5 @@ The final test plan recorded actual results for every test case and was used to 
 
 ## Deployed URL
  `https://malkhalil-luc.github.io/comp424-proj/`
+ `https://malkhalil-luc.github.io/comp424-proj/test/`
 
