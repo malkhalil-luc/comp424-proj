@@ -2,51 +2,47 @@
 // Input: { users, selectedUserId, onChange, onLogin }
 // Output: DOM nodes mounted inside `container`
 // Events: onChange(userId), onLogin()
-// Dependencies: none
+// Dependencies: lib/dom-builder.js
+
+import { el } from '../lib/dom-builder.js';
 
 export function LoginPanel(container, { users, selectedUserId, onChange, onLogin }) {
-  const title = document.createElement('h2');
-  title.className = 'login-panel-title';
-  title.textContent = 'Sign in to the portal';
+  const options = users.map((user) =>
+    el('option', {
+      value: user.id,
+      textContent: `${user.name} (${user.role})`,
+    })
+  );
 
-  const subtitle = document.createElement('p');
-  subtitle.className = 'login-panel-subtitle';
-  subtitle.textContent = 'Choose a demo account to continue as Admin or Staff.';
-
-  const label = document.createElement('label');
-  label.className = 'field';
-
-  const caption = document.createElement('span');
-  caption.textContent = 'Demo account';
-
-  const select = document.createElement('select');
-  select.name = 'userId';
+  const select = el('select', { name: 'userId' }, options);
   select.addEventListener('change', (event) => {
     onChange(event.target.value);
   });
-
-  users.forEach((user) => {
-    const option = document.createElement('option');
-    option.value = user.id;
-    option.textContent = `${user.name} (${user.role})`;
-    select.append(option);
-  });
-
   select.value = selectedUserId ?? users[0]?.id ?? '';
 
-  label.append(caption, select);
+  const label = el('label', { className: 'field' }, [
+    el('span', { textContent: 'Demo account' }),
+    select,
+  ]);
 
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = 'ticket-action-btn ticket-action-btn--primary';
-  button.textContent = 'Sign In';
-  button.addEventListener('click', () => {
+  const signInBtn = el('button', {
+    type: 'button',
+    className: 'ticket-action-btn ticket-action-btn--primary',
+    textContent: 'Sign In',
+  });
+  signInBtn.addEventListener('click', () => {
     onLogin();
   });
 
-  const card = document.createElement('section');
-  card.className = 'login-panel';
-  card.append(title, subtitle, label, button);
+  const card = el('section', { className: 'login-panel' }, [
+    el('h2', { className: 'login-panel-title', textContent: 'Sign in to the portal' }),
+    el('p', {
+      className: 'login-panel-subtitle',
+      textContent: 'Choose a demo account to continue as Admin or Staff.',
+    }),
+    label,
+    signInBtn,
+  ]);
 
   container.replaceChildren(card);
 }

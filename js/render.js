@@ -2,6 +2,7 @@ import { dom } from './dom.js';
 import { FilterChips } from './components/filter-chips.js';
 import { LoginPanel } from './components/login-panel.js';
 import { SearchBar } from './components/search-bar.js';
+import { StatusBanner } from './components/status-banner.js';
 import {
   getEventTypeCounts,
   getDepartmentCounts,
@@ -10,7 +11,11 @@ import {
   getNewsCategoryCounts,
   getSelectedTicket,
   getTicketStatusCounts,
-  getSelectedAnnouncement,
+  getVisibleTickets,
+  getVisibleAnnouncements,
+  getVisibleNews,
+  getVisibleEmployees,
+  getVisibleCalendarEvents,
 } from './state.js';
 import { renderDashboard } from './render/dashboard-render.js';
 import {
@@ -174,6 +179,7 @@ export function render(state, handlers) {
   const currentUser = getCurrentUser();
 
   if (!currentUser) {
+    dom.appBootStatus.hidden = true;
     dom.sidebar.hidden = true;
     dom.sidebarBackdrop.hidden = true;
     dom.sidebarToggle.hidden = true;
@@ -190,6 +196,7 @@ export function render(state, handlers) {
     return;
   }
 
+  dom.appBootStatus.hidden = true;
   dom.sidebar.hidden = false;
   dom.sidebarBackdrop.hidden = false;
   dom.sidebarToggle.hidden = false;
@@ -229,6 +236,33 @@ export function render(state, handlers) {
     dom.directoryView.hidden = true;
     dom.calendarView.hidden = true;
 
+    StatusBanner(dom.announcementsStatusRoot, {
+      isLoading: state.announcementsLoading,
+      error: state.announcementsError,
+      staleMessage: state.announcementsStaleNotice,
+      loadingMessage: 'Loading announcements…',
+    }, { onRetry: handlers.onRetryAnnouncementsLoad });
+
+    if (state.announcementsLoading) {
+      dom.announcementSearchContainer.replaceChildren();
+      dom.announcementList.textContent = '';
+      dom.announcementEmptyState.hidden = true;
+      renderAnnouncementForm(state);
+      renderFormPlaceholder(dom.announcementDetail, 'Loading announcements…');
+      dom.portalView.hidden = false;
+      return;
+    }
+
+    if (state.announcementsError && state.announcements.length === 0) {
+      dom.announcementSearchContainer.replaceChildren();
+      dom.announcementList.textContent = '';
+      dom.announcementEmptyState.hidden = true;
+      renderAnnouncementForm(state);
+      renderFormPlaceholder(dom.announcementDetail, 'Could not load announcements. Try again from the message above.');
+      dom.portalView.hidden = false;
+      return;
+    }
+
     SearchBar(dom.announcementSearchContainer, {
       query: state.announcementQuery,
       onInput: handlers.onAnnouncementSearchInput,
@@ -236,6 +270,7 @@ export function render(state, handlers) {
       inputId: 'announcement-search',
       labelText: 'Search announcements',
       placeholder: 'Search announcements...',
+      summaryText: `${getVisibleAnnouncements().length} shown · ${state.announcements.length} total`,
     });
 
     renderAnnouncementForm(state);
@@ -258,6 +293,35 @@ export function render(state, handlers) {
     dom.directoryView.hidden = true;
     dom.calendarView.hidden = true;
 
+    StatusBanner(dom.newsStatusRoot, {
+      isLoading: state.newsLoading,
+      error: state.newsError,
+      staleMessage: state.newsStaleNotice,
+      loadingMessage: 'Loading news…',
+    }, { onRetry: handlers.onRetryNewsLoad });
+
+    if (state.newsLoading) {
+      dom.newsSearchContainer.replaceChildren();
+      dom.newsFilterContainer.replaceChildren();
+      dom.newsList.textContent = '';
+      dom.newsEmptyState.hidden = true;
+      renderNewsForm(state, currentUser);
+      renderFormPlaceholder(dom.newsDetail, 'Loading news…');
+      dom.portalView.hidden = false;
+      return;
+    }
+
+    if (state.newsError && state.newsArticles.length === 0) {
+      dom.newsSearchContainer.replaceChildren();
+      dom.newsFilterContainer.replaceChildren();
+      dom.newsList.textContent = '';
+      dom.newsEmptyState.hidden = true;
+      renderNewsForm(state, currentUser);
+      renderFormPlaceholder(dom.newsDetail, 'Could not load news. Try again from the message above.');
+      dom.portalView.hidden = false;
+      return;
+    }
+
     SearchBar(dom.newsSearchContainer, {
       query: state.newsQuery,
       onInput: handlers.onNewsSearchInput,
@@ -265,6 +329,7 @@ export function render(state, handlers) {
       inputId: 'news-search',
       labelText: 'Search news',
       placeholder: 'Search news...',
+      summaryText: `${getVisibleNews().length} shown · ${state.newsArticles.length} total`,
     });
 
     const newsCategoryCounts = getNewsCategoryCounts();
@@ -301,6 +366,33 @@ export function render(state, handlers) {
     dom.directoryView.hidden = false;
     dom.calendarView.hidden = true;
 
+    StatusBanner(dom.directoryStatusRoot, {
+      isLoading: state.directoryLoading,
+      error: state.directoryError,
+      staleMessage: state.directoryStaleNotice,
+      loadingMessage: 'Loading directory…',
+    }, { onRetry: handlers.onRetryDirectoryLoad });
+
+    if (state.directoryLoading) {
+      dom.directorySearchContainer.replaceChildren();
+      dom.directoryFilterContainer.replaceChildren();
+      dom.directoryList.textContent = '';
+      dom.directoryEmptyState.hidden = true;
+      renderFormPlaceholder(dom.directoryDetail, 'Loading directory…');
+      dom.portalView.hidden = false;
+      return;
+    }
+
+    if (state.directoryError && state.employees.length === 0) {
+      dom.directorySearchContainer.replaceChildren();
+      dom.directoryFilterContainer.replaceChildren();
+      dom.directoryList.textContent = '';
+      dom.directoryEmptyState.hidden = true;
+      renderFormPlaceholder(dom.directoryDetail, 'Could not load directory. Try again from the message above.');
+      dom.portalView.hidden = false;
+      return;
+    }
+
     SearchBar(dom.directorySearchContainer, {
       query: state.directoryQuery,
       onInput: handlers.onDirectorySearchInput,
@@ -308,6 +400,7 @@ export function render(state, handlers) {
       inputId: 'directory-search',
       labelText: 'Search directory',
       placeholder: 'Search employees...',
+      summaryText: `${getVisibleEmployees().length} shown · ${state.employees.length} total`,
     });
 
     const departmentCounts = getDepartmentCounts();
@@ -339,6 +432,35 @@ export function render(state, handlers) {
     dom.directoryView.hidden = true;
     dom.calendarView.hidden = false;
 
+    StatusBanner(dom.calendarStatusRoot, {
+      isLoading: state.eventsLoading,
+      error: state.eventsError,
+      staleMessage: state.eventsStaleNotice,
+      loadingMessage: 'Loading events…',
+    }, { onRetry: handlers.onRetryEventsLoad });
+
+    if (state.eventsLoading) {
+      dom.calendarSearchContainer.replaceChildren();
+      dom.calendarFilterContainer.replaceChildren();
+      dom.calendarList.textContent = '';
+      dom.calendarEmptyState.hidden = true;
+      renderEventForm(state, currentUser);
+      renderFormPlaceholder(dom.calendarDetail, 'Loading events…');
+      dom.portalView.hidden = false;
+      return;
+    }
+
+    if (state.eventsError && state.events.length === 0) {
+      dom.calendarSearchContainer.replaceChildren();
+      dom.calendarFilterContainer.replaceChildren();
+      dom.calendarList.textContent = '';
+      dom.calendarEmptyState.hidden = true;
+      renderEventForm(state, currentUser);
+      renderFormPlaceholder(dom.calendarDetail, 'Could not load events. Try again from the message above.');
+      dom.portalView.hidden = false;
+      return;
+    }
+
     SearchBar(dom.calendarSearchContainer, {
       query: state.calendarQuery,
       onInput: handlers.onCalendarSearchInput,
@@ -346,6 +468,7 @@ export function render(state, handlers) {
       inputId: 'calendar-search',
       labelText: 'Search calendar events',
       placeholder: 'Search events...',
+      summaryText: `${getVisibleCalendarEvents().length} shown · ${state.events.length} total`,
     });
 
     const eventTypeCounts = getEventTypeCounts();
@@ -381,6 +504,51 @@ export function render(state, handlers) {
   dom.directoryView.hidden = true;
   dom.calendarView.hidden = true;
 
+  StatusBanner(dom.ticketStatusRoot, {
+    isLoading: state.isLoading,
+    error: state.error,
+    staleMessage: state.staleNotice,
+    loadingMessage: 'Loading tickets…',
+  }, { onRetry: handlers.onRetryLoad });
+
+  dom.newTicketFormSection.hidden = state.isLoading || !state.showNewTicketForm;
+  dom.supportShell.classList.toggle('detail-view-active', Boolean(getSelectedTicket()));
+
+  if (state.isLoading) {
+    dom.searchBarContainer.replaceChildren();
+    dom.ticketFilterContainer.replaceChildren();
+    dom.emptyState.hidden = true;
+    dom.ticketList.classList.add('is-loading');
+    dom.ticketList.innerHTML = '';
+    const loadingItem = document.createElement('li');
+    loadingItem.className = 'loading-list-item';
+    loadingItem.textContent = 'Loading tickets…';
+    dom.ticketList.append(loadingItem);
+    dom.ticketDetail.innerHTML = '';
+    const loadingDetail = document.createElement('p');
+    loadingDetail.className = 'detail-placeholder';
+    loadingDetail.textContent = 'Loading details…';
+    dom.ticketDetail.append(loadingDetail);
+    dom.portalView.hidden = false;
+    return;
+  }
+
+  dom.ticketList.classList.remove('is-loading');
+
+  if (state.error && state.tickets.length === 0) {
+    dom.searchBarContainer.replaceChildren();
+    dom.ticketFilterContainer.replaceChildren();
+    dom.emptyState.hidden = true;
+    dom.ticketList.textContent = '';
+    dom.ticketDetail.innerHTML = '';
+    const placeholder = document.createElement('p');
+    placeholder.className = 'detail-placeholder';
+    placeholder.textContent = 'Retry loading to continue.';
+    dom.ticketDetail.append(placeholder);
+    dom.portalView.hidden = false;
+    return;
+  }
+
   SearchBar(dom.searchBarContainer, {
     query: state.query,
     onInput: handlers.onSearchInput,
@@ -388,6 +556,7 @@ export function render(state, handlers) {
     inputId: 'ticket-search',
     labelText: 'Search tickets',
     placeholder: 'Search tickets...',
+    summaryText: `${getVisibleTickets().length} shown · ${getAccessibleTickets().length} total`,
   });
 
   const accessibleTickets = getAccessibleTickets();
@@ -407,53 +576,6 @@ export function render(state, handlers) {
 
   dom.ticketSortSelect.value = state.sortBy;
   renderSupportForm(state, currentUser);
-
-  dom.loadErrorBanner.hidden = state.error === '';
-  dom.loadErrorMessage.textContent = state.error;
-  dom.retryLoadBtn.onclick = handlers.onRetryLoad;
-
-  dom.staleDataBanner.hidden = state.staleNotice === '';
-  dom.staleDataBanner.textContent = state.staleNotice;
-
-  dom.newTicketFormSection.hidden = state.isLoading || !state.showNewTicketForm;
-  dom.supportShell.classList.toggle('detail-view-active', Boolean(getSelectedTicket()));
-
-
-  if (state.isLoading) {
-    dom.loadErrorBanner.hidden = true;
-    dom.staleDataBanner.hidden = true;
-    dom.emptyState.hidden = true;
-
-    dom.ticketList.classList.add('is-loading');
-    dom.ticketList.textContent = '';
-
-    const loadingItem = document.createElement('li');
-    loadingItem.textContent = 'Loading tickets...';
-    dom.ticketList.append(loadingItem);
-
-    dom.ticketDetail.innerHTML = '';
-    const loadingDetail = document.createElement('p');
-    loadingDetail.className = 'detail-placeholder';
-    loadingDetail.textContent = 'Loading details...';
-    dom.ticketDetail.append(loadingDetail);
-    dom.portalView.hidden = false;
-    return;
-  }
-
-  dom.ticketList.classList.remove('is-loading');
-
-  if (state.error && state.tickets.length === 0) {
-    dom.emptyState.hidden = true;
-    dom.ticketList.textContent = '';
-
-    dom.ticketDetail.innerHTML = '';
-    const placeholder = document.createElement('p');
-    placeholder.className = 'detail-placeholder';
-    placeholder.textContent = 'Retry loading to continue.';
-    dom.ticketDetail.append(placeholder);
-    dom.portalView.hidden = false;
-    return;
-  }
 
   renderTicketList(state);
   if (state.showNewTicketForm) {

@@ -329,6 +329,23 @@ function getErrorMessage(error) {
   }
 }
 
+function getGenericLoadMessage(error) {
+  switch (getErrorCode(error)) {
+    case 'timeout':
+      return 'Loading took too long. Please try again.';
+    case 'network':
+      return 'Could not reach the server. Please check your connection and try again.';
+    case 'http':
+      return 'The server returned an error. Please try again.';
+    case 'parse':
+      return 'The data could not be read.';
+    case 'validation':
+      return 'The data was not in the expected format.';
+    default:
+      return 'Something went wrong while loading data.';
+  }
+}
+
 function formatStaleMessage(savedAt, sourceLabel) {
   if (!savedAt) {
     return `Showing ${sourceLabel} while live data is unavailable.`;
@@ -389,16 +406,20 @@ function getWeatherSummary(current) {
     return null;
   }
 
+  const code = current.weather_code;
+  let label = 'Windy conditions';
+  if (code <= 2) {
+    label = 'Clear to partly cloudy';
+  } else if (code <= 49) {
+    label = 'Cloudy';
+  } else if (code <= 69) {
+    label = 'Rain';
+  }
+
   return {
     temperature: Math.round(current.temperature_2m),
     windSpeed: Math.round(current.wind_speed_10m),
-    label: current.weather_code <= 2
-      ? 'Clear to partly cloudy'
-      : current.weather_code <= 49
-        ? 'Cloudy'
-        : current.weather_code <= 69
-          ? 'Rain'
-          : 'Windy conditions',
+    label,
   };
 }
 
@@ -554,24 +575,31 @@ export async function loadTicketsData({ selectedId }) {
 }
 
 export async function loadDashboardData() {
-  const [eventsResult, weatherResult] = await Promise.allSettled([
-    loadEventsData(),
-    fetchJson(CHICAGO_WEATHER_URL),
-  ]);
-
-  return {
-    events: eventsResult.status === 'fulfilled' ? normalizeEvents(eventsResult.value) : [],
-    weather: weatherResult.status === 'fulfilled'
-      ? getWeatherSummary(weatherResult.value.current)
-      : null,
-    weatherError: weatherResult.status === 'rejected'
-      ? 'Weather data is currently unavailable.'
-      : '',
-  };
+  try {
+    const json = await fetchJson(CHICAGO_WEATHER_URL);
+    return {
+      weather: getWeatherSummary(json.current),
+      weatherError: '',
+    };
+  } catch {
+    return {
+      weather: null,
+      weatherError: 'Weather data is currently unavailable.',
+    };
+  }
 }
 
 export async function loadDirectoryData() {
-  return normalizeEmployees(await fetchJson(EMPLOYEES_URL));
+  try {
+    const items = normalizeEmployees(await fetchJson(EMPLOYEES_URL));
+    return { items, error: '', staleNotice: '' };
+  } catch (error) {
+    return {
+      items: [],
+      error: getGenericLoadMessage(error),
+      staleNotice: '',
+    };
+  }
 }
 
 async function fetchEventsJson() {
@@ -600,12 +628,26 @@ export async function loadEventsData() {
       return loadEventsData();
     }
 
-    return normalizeEvents(snapshot.docs.map((docSnapshot) => ({
+    const items = normalizeEvents(snapshot.docs.map((docSnapshot) => ({
       id: docSnapshot.id,
       ...docSnapshot.data(),
     })));
-  } catch (error) {
-    return fetchEventsJson();
+    return { items, error: '', staleNotice: '' };
+  } catch (firestoreError) {
+    try {
+      const items = await fetchEventsJson();
+      return {
+        items,
+        error: '',
+        staleNotice: 'Showing local event data while the live calendar could not be reached.',
+      };
+    } catch {
+      return {
+        items: [],
+        error: getGenericLoadMessage(firestoreError),
+        staleNotice: '',
+      };
+    }
   }
 }
 
@@ -663,12 +705,26 @@ export async function loadAnnouncementsData() {
       return loadAnnouncementsData();
     }
 
-    return normalizeAnnouncements(snapshot.docs.map((docSnapshot) => ({
+    const items = normalizeAnnouncements(snapshot.docs.map((docSnapshot) => ({
       id: docSnapshot.id,
       ...docSnapshot.data(),
     })));
-  } catch (error) {
-    return fetchAnnouncementsJson();
+    return { items, error: '', staleNotice: '' };
+  } catch (firestoreError) {
+    try {
+      const items = await fetchAnnouncementsJson();
+      return {
+        items,
+        error: '',
+        staleNotice: 'Showing local announcements while the server could not be reached.',
+      };
+    } catch {
+      return {
+        items: [],
+        error: getGenericLoadMessage(firestoreError),
+        staleNotice: '',
+      };
+    }
   }
 }
 
@@ -686,12 +742,26 @@ export async function loadNewsData() {
       return loadNewsData();
     }
 
-    return normalizeNewsArticles(snapshot.docs.map((docSnapshot) => ({
+    const items = normalizeNewsArticles(snapshot.docs.map((docSnapshot) => ({
       id: docSnapshot.id,
       ...docSnapshot.data(),
     })));
-  } catch (error) {
-    return fetchNewsJson();
+    return { items, error: '', staleNotice: '' };
+  } catch (firestoreError) {
+    try {
+      const items = await fetchNewsJson();
+      return {
+        items,
+        error: '',
+        staleNotice: 'Showing local news articles while the server could not be reached.',
+      };
+    } catch {
+      return {
+        items: [],
+        error: getGenericLoadMessage(firestoreError),
+        staleNotice: '',
+      };
+    }
   }
 }
 

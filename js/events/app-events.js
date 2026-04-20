@@ -10,6 +10,7 @@ export function bindAppEvents(state, render) {
 
       event.preventDefault();
       state.activeSection = section;
+      window.location.hash = section;
 
       if (window.innerWidth < 600) {
         dom.appShell.classList.remove('sidebar-open');

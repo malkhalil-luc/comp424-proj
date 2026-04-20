@@ -8,6 +8,12 @@ function clearEventFeedback() {
   dom.eventLocationError.textContent = '';
   dom.eventFormStatus.textContent = '';
   dom.eventFormError.textContent = '';
+  dom.eventTitleInput.classList.remove('invalid');
+  dom.eventStartsAtInput.classList.remove('invalid');
+  dom.eventLocationInput.classList.remove('invalid');
+  dom.eventTitleInput.setAttribute('aria-invalid', 'false');
+  dom.eventStartsAtInput.setAttribute('aria-invalid', 'false');
+  dom.eventLocationInput.setAttribute('aria-invalid', 'false');
 }
 
 function clearEventForm(state) {
@@ -62,18 +68,30 @@ export function bindCalendarEvents(state, render) {
     const startsAt = dom.eventStartsAtInput.value.trim();
     const location = dom.eventLocationInput.value.trim();
 
+    let isValid = true;
+
     if (title === '') {
       dom.eventTitleError.textContent = 'Title is required.';
-      return;
+      dom.eventTitleInput.classList.add('invalid');
+      dom.eventTitleInput.setAttribute('aria-invalid', 'true');
+      isValid = false;
     }
 
     if (startsAt === '') {
       dom.eventStartsAtError.textContent = 'Start date and time are required.';
-      return;
+      dom.eventStartsAtInput.classList.add('invalid');
+      dom.eventStartsAtInput.setAttribute('aria-invalid', 'true');
+      isValid = false;
     }
 
     if (location === '') {
       dom.eventLocationError.textContent = 'Location is required.';
+      dom.eventLocationInput.classList.add('invalid');
+      dom.eventLocationInput.setAttribute('aria-invalid', 'true');
+      isValid = false;
+    }
+
+    if (!isValid) {
       return;
     }
 

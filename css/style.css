@@ -44,6 +44,29 @@ body {
   color: var(--color-text-primary);
 }
 
+.app-boot-status {
+  display: grid;
+  place-items: center;
+  min-height: calc(100vh - var(--top-bar-height) - 6rem);
+}
+
+.app-boot-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.9rem;
+  background-color: var(--color-surface);
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
+.app-boot-card p {
+  margin: 0;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
 
 .skip-link {
   position: absolute;
@@ -113,31 +136,6 @@ body {
   align-items: center;
   gap: 0.75rem;
   flex-wrap: wrap;
-}
-
-.user-switcher {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.375rem 0.625rem;
-  background-color: var(--color-page-bg);
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-}
-
-.user-switcher-label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--color-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.user-switcher-select {
-  border: none;
-  background: transparent;
-  color: var(--color-text-primary);
-  font: inherit;
 }
 
 .session-summary {
@@ -653,6 +651,12 @@ body {
   color: var(--color-text-secondary);
 }
 
+.dashboard-loading-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
 .dashboard-pill {
   display: inline-flex;
   align-items: center;
@@ -865,29 +869,58 @@ button {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-#load-error-banner {
+/* Week 6 / 10 / 11 — loading, error, stale status (StatusBanner component) */
+.data-status-host {
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 0.75rem;
+}
+
+.data-status {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
   border-radius: 0.5rem;
-  margin-bottom: 1rem;
-  color: var(--color-error);
+  margin-bottom: 0.75rem;
   font-size: 0.875rem;
 }
 
-#load-error-banner p {
+.data-status-spinner {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 999px;
+  border: 2px solid #cbd5e1;
+  border-top-color: var(--color-accent);
+  flex-shrink: 0;
+  animation: data-status-spin 0.8s linear infinite;
+}
+
+.data-status p {
   margin: 0;
+  flex: 1;
 }
 
-#load-error-banner[hidden] {
-  display: none;
+.data-status--loading {
+  background-color: var(--color-page-bg);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
 }
 
-#retry-load-btn {
+.data-status--error {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: var(--color-error);
+}
+
+.data-status--stale {
+  background-color: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+}
+
+.data-status-retry {
   padding: 0.25rem 0.75rem;
   background: transparent;
   border: 1px solid var(--color-error);
@@ -897,31 +930,27 @@ button {
   font-weight: 600;
   white-space: nowrap;
   flex-shrink: 0;
+  cursor: pointer;
   transition: background-color var(--transition-fast),
     color var(--transition-fast);
 }
 
-#retry-load-btn:hover {
+.data-status-retry:hover {
   background-color: var(--color-error);
   color: #ffffff;
 }
 
-#stale-data-banner {
-  margin: 0 0 1rem 0;
-  padding: 0.75rem 1rem;
-  background-color: #fff7ed;
-  border: 1px solid #fed7aa;
-  border-radius: 0.5rem;
-  color: #9a3412;
-  font-size: 0.875rem;
-}
-
-#stale-data-banner[hidden] {
-  display: none;
+@keyframes data-status-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 
-#new-ticket-form-section {
+#new-ticket-form-section,
+#news-form-section,
+#announcement-form-section,
+#event-form-section {
   background-color: var(--color-page-bg);
   border: 1px solid var(--color-border);
   border-radius: 0.75rem;
@@ -929,7 +958,10 @@ button {
   margin-bottom: 1rem;
 }
 
-#new-ticket-form-section h3 {
+#new-ticket-form-section h3,
+#news-form-section h3,
+#announcement-form-section h3,
+#event-form-section h3 {
   margin: 0 0 1rem 0;
   font-size: 1rem;
   font-weight: 600;
@@ -997,7 +1029,8 @@ button {
 }
 
 .field input.invalid,
-.field textarea.invalid {
+.field textarea.invalid,
+.field select.invalid {
   border-color: var(--color-error);
 }
 
@@ -1019,7 +1052,10 @@ button {
   background-color: var(--color-accent-dark);
 }
 
-#cancel-ticket-btn {
+#cancel-ticket-btn,
+#cancel-news-btn,
+#cancel-announcement-btn,
+#cancel-event-btn {
   padding: 0.5rem 1rem;
   background: transparent;
   color: var(--color-text-secondary);
@@ -1028,28 +1064,45 @@ button {
   transition: background-color var(--transition-fast);
 }
 
-#cancel-ticket-btn:hover {
+#cancel-ticket-btn:hover,
+#cancel-news-btn:hover,
+#cancel-announcement-btn:hover,
+#cancel-event-btn:hover {
   background-color: var(--color-border);
 }
 
 
 
 #ticket-title-error,
-#ticket-description-error {
+#ticket-description-error,
+#news-title-error,
+#news-summary-error,
+#news-body-error,
+#announcement-title-error,
+#announcement-body-error,
+#event-title-error,
+#event-starts-at-error,
+#event-location-error {
   font-size: 0.8rem;
   color: var(--color-error);
   min-height: 1.2em;
   margin: 0;
 }
 
-#form-status {
+#form-status,
+#news-form-status,
+#announcement-form-status,
+#event-form-status {
   font-size: 0.875rem;
   color: var(--color-success);
   margin: 0.5rem 0 0 0;
   min-height: 1.25em;
 }
 
-#form-error {
+#form-error,
+#news-form-error,
+#announcement-form-error,
+#event-form-error {
   font-size: 0.875rem;
   color: var(--color-error);
   margin: 0.5rem 0 0 0;
@@ -1734,6 +1787,16 @@ footer {
   font-size: 0.875rem;
 }
 
+.loading-list-item {
+  width: 100%;
+  padding: 1rem;
+  border: 1px dashed var(--color-border);
+  border-radius: 0.75rem;
+  background-color: #f8fafc;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
 #search-bar-container {
   flex: 1;
   min-width: 12rem;
@@ -1741,8 +1804,16 @@ footer {
 
 .search-bar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem;
+}
+
+.search-summary {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
 }
 
 .search-bar input[type="search"] {

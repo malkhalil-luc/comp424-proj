@@ -38,7 +38,20 @@ export const state = {
   showEventForm: false,
   editingEventId: null,
   weather: null,
+  weatherLoading: false,
   weatherError: '',
+  announcementsLoading: false,
+  announcementsError: '',
+  announcementsStaleNotice: '',
+  newsLoading: false,
+  newsError: '',
+  newsStaleNotice: '',
+  directoryLoading: false,
+  directoryError: '',
+  directoryStaleNotice: '',
+  eventsLoading: false,
+  eventsError: '',
+  eventsStaleNotice: '',
 };
 
 const PRIORITY_RANK = {

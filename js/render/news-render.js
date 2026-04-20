@@ -45,6 +45,9 @@ export function renderNewsList(state) {
 
     if (article.id === state.selectedNewsId) {
       button.classList.add('is-selected');
+      button.setAttribute('aria-pressed', 'true');
+    } else {
+      button.setAttribute('aria-pressed', 'false');
     }
 
     const title = document.createElement('p');

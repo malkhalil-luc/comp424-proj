@@ -21,12 +21,52 @@ import {
   loadTicketsData,
 } from './api.js';
 
+const VALID_HASH_SECTIONS = [
+  'dashboard',
+  'support',
+  'news',
+  'announcements',
+  'directory',
+  'calendar',
+];
+
+/** e.g. /calendar → /#calendar (static server has no path router) */
+function redirectPathnameToHash() {
+  if (window.location.hash) {
+    return;
+  }
+  const match = window.location.pathname.match(
+    /^\/(dashboard|support|news|announcements|directory|calendar)\/?$/
+  );
+  if (match) {
+    window.location.replace(`${window.location.origin}/#${match[1]}`);
+  }
+}
+
+function syncActiveSectionFromHash() {
+  const raw = window.location.hash.replace(/^#/, '');
+  if (VALID_HASH_SECTIONS.includes(raw)) {
+    state.activeSection = raw;
+  }
+}
+
+async function registerServiceWorker() {
+  if (!('serviceWorker' in navigator)) {
+    return;
+  }
+
+  try {
+    await navigator.serviceWorker.register('/sw.js');
+  } catch {}
+}
+
 if (!dom.appShell || !dom.sidebarToggle || !dom.sidebarBackdrop) {
   throw new Error('main.js: Missing critical layout elements — check HTML');
 }
 
 if (
   !dom.topBarWidgets
+  || !dom.ticketStatusRoot
   || !dom.ticketList
   || !dom.ticketDetail
   || !dom.supportShell
@@ -37,15 +77,19 @@ if (
   || !dom.loginView
   || !dom.portalView
   || !dom.announcementsView
+  || !dom.announcementsStatusRoot
   || !dom.announcementList
   || !dom.announcementDetail
   || !dom.newsView
+  || !dom.newsStatusRoot
   || !dom.newsList
   || !dom.newsDetail
   || !dom.directoryView
+  || !dom.directoryStatusRoot
   || !dom.directoryList
   || !dom.directoryDetail
   || !dom.calendarView
+  || !dom.calendarStatusRoot
   || !dom.calendarList
   || !dom.calendarDetail
 ) {
@@ -85,6 +129,10 @@ function renderAppState() {
       renderAppState();
     },
     onRetryLoad: loadAndRenderTickets,
+    onRetryAnnouncementsLoad: loadAnnouncementsState,
+    onRetryNewsLoad: loadNewsState,
+    onRetryDirectoryLoad: loadDirectoryState,
+    onRetryEventsLoad: loadEventsState,
     onSearchInput: (value) => {
       state.query = value;
       renderAppState();
@@ -149,6 +197,7 @@ function renderAppState() {
       state.currentUserId = state.selectedLoginUserId;
       saveSessionUserId(state.currentUserId);
       resetPortalUi();
+      syncActiveSectionFromHash();
       renderAppState();
     },
     onLogout: () => {
@@ -183,6 +232,9 @@ async function loadAndRenderTickets() {
 }
 
 async function loadDashboardState() {
+  state.weatherLoading = true;
+  renderAppState();
+
   try {
     const result = await loadDashboardData();
     state.weather = result.weather;
@@ -191,49 +243,75 @@ async function loadDashboardState() {
     state.weather = null;
     state.weatherError = 'Weather data is currently unavailable.';
   }
+
+  state.weatherLoading = false;
+  renderAppState();
 }
 
 async function loadEventsState() {
-  try {
-    state.events = await loadEventsData();
-    state.selectedEventId = state.events[0]?.id ?? null;
-  } catch {
-    state.events = [];
-    state.selectedEventId = null;
-  }
+  state.eventsLoading = true;
+  state.eventsError = '';
+  state.eventsStaleNotice = '';
+  renderAppState();
+
+  const result = await loadEventsData();
+  state.events = result.items;
+  state.eventsError = result.error;
+  state.eventsStaleNotice = result.staleNotice;
+  state.selectedEventId = state.events[0]?.id ?? null;
+  state.eventsLoading = false;
+  renderAppState();
 }
 
 async function loadAnnouncementsState() {
-  try {
-    state.announcements = await loadAnnouncementsData();
-    state.selectedAnnouncementId = state.announcements[0]?.id ?? null;
-  } catch {
-    state.announcements = [];
-    state.selectedAnnouncementId = null;
-  }
+  state.announcementsLoading = true;
+  state.announcementsError = '';
+  state.announcementsStaleNotice = '';
+  renderAppState();
+
+  const result = await loadAnnouncementsData();
+  state.announcements = result.items;
+  state.announcementsError = result.error;
+  state.announcementsStaleNotice = result.staleNotice;
+  state.selectedAnnouncementId = state.announcements[0]?.id ?? null;
+  state.announcementsLoading = false;
+  renderAppState();
 }
 
 async function loadNewsState() {
-  try {
-    state.newsArticles = await loadNewsData();
-    state.selectedNewsId = state.newsArticles[0]?.id ?? null;
-  } catch {
-    state.newsArticles = [];
-    state.selectedNewsId = null;
-  }
+  state.newsLoading = true;
+  state.newsError = '';
+  state.newsStaleNotice = '';
+  renderAppState();
+
+  const result = await loadNewsData();
+  state.newsArticles = result.items;
+  state.newsError = result.error;
+  state.newsStaleNotice = result.staleNotice;
+  state.selectedNewsId = state.newsArticles[0]?.id ?? null;
+  state.newsLoading = false;
+  renderAppState();
 }
 
 async function loadDirectoryState() {
-  try {
-    state.employees = await loadDirectoryData();
-    state.selectedEmployeeId = state.employees[0]?.id ?? null;
-  } catch {
-    state.employees = [];
-    state.selectedEmployeeId = null;
-  }
+  state.directoryLoading = true;
+  state.directoryError = '';
+  state.directoryStaleNotice = '';
+  renderAppState();
+
+  const result = await loadDirectoryData();
+  state.employees = result.items;
+  state.directoryError = result.error;
+  state.directoryStaleNotice = result.staleNotice;
+  state.selectedEmployeeId = state.employees[0]?.id ?? null;
+  state.directoryLoading = false;
+  renderAppState();
 }
 
 async function init() {
+  redirectPathnameToHash();
+  registerServiceWorker();
+
   const savedUserId = loadSessionUserId();
   if (savedUserId && state.users.some((user) => user.id === savedUserId)) {
     state.currentUserId = savedUserId;
@@ -246,18 +324,31 @@ async function init() {
   bindDirectoryEvents(state, renderAppState);
   bindNewsEvents(state, renderAppState);
   bindSupportEvents(state, renderAppState);
+
+  if (state.currentUserId) {
+    syncActiveSectionFromHash();
+  }
+
+  window.addEventListener('hashchange', () => {
+    if (!state.currentUserId) {
+      return;
+    }
+    syncActiveSectionFromHash();
+    renderAppState();
+  });
+
+  const startupLoads = [
+    loadDashboardState(),
+    loadEventsState(),
+    loadAnnouncementsState(),
+    loadNewsState(),
+    loadDirectoryState(),
+    loadAndRenderTickets(),
+  ];
+
   renderAppState();
-  await loadDashboardState();
+  await Promise.all(startupLoads);
   renderAppState();
-  await loadEventsState();
-  renderAppState();
-  await loadAnnouncementsState();
-  renderAppState();
-  await loadNewsState();
-  renderAppState();
-  await loadDirectoryState();
-  renderAppState();
-  await loadAndRenderTickets();
 }
 
 init();

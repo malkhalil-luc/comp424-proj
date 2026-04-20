@@ -1,4 +1,7 @@
 export const dom = {
+  get appBootStatus() {
+    return document.querySelector('#app-boot-status');
+  },
   get appShell() {
     return document.querySelector('.app-shell');
   },
@@ -26,17 +29,20 @@ export const dom = {
   get emptyState() {
     return document.querySelector('#empty-state');
   },
-  get loadErrorBanner() {
-    return document.querySelector('#load-error-banner');
+  get ticketStatusRoot() {
+    return document.querySelector('#ticket-status-root');
   },
-  get loadErrorMessage() {
-    return document.querySelector('#load-error-message');
+  get announcementsStatusRoot() {
+    return document.querySelector('#announcements-status-root');
   },
-  get retryLoadBtn() {
-    return document.querySelector('#retry-load-btn');
+  get newsStatusRoot() {
+    return document.querySelector('#news-status-root');
   },
-  get staleDataBanner() {
-    return document.querySelector('#stale-data-banner');
+  get directoryStatusRoot() {
+    return document.querySelector('#directory-status-root');
+  },
+  get calendarStatusRoot() {
+    return document.querySelector('#calendar-status-root');
   },
   get searchBarContainer() {
     return document.querySelector('#search-bar-container');

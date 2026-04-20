@@ -8,6 +8,12 @@ function clearNewsFeedback() {
   dom.newsBodyError.textContent = '';
   dom.newsFormStatus.textContent = '';
   dom.newsFormError.textContent = '';
+  dom.newsTitleInput.classList.remove('invalid');
+  dom.newsSummaryInput.classList.remove('invalid');
+  dom.newsBodyInput.classList.remove('invalid');
+  dom.newsTitleInput.setAttribute('aria-invalid', 'false');
+  dom.newsSummaryInput.setAttribute('aria-invalid', 'false');
+  dom.newsBodyInput.setAttribute('aria-invalid', 'false');
 }
 
 function clearNewsForm(state) {
@@ -72,18 +78,30 @@ export function bindNewsEvents(state, render) {
     const summary = dom.newsSummaryInput.value.trim();
     const body = dom.newsBodyInput.value.trim();
 
+    let isValid = true;
+
     if (title === '') {
       dom.newsTitleError.textContent = 'Title is required.';
-      return;
+      dom.newsTitleInput.classList.add('invalid');
+      dom.newsTitleInput.setAttribute('aria-invalid', 'true');
+      isValid = false;
     }
 
     if (summary === '') {
       dom.newsSummaryError.textContent = 'Summary is required.';
-      return;
+      dom.newsSummaryInput.classList.add('invalid');
+      dom.newsSummaryInput.setAttribute('aria-invalid', 'true');
+      isValid = false;
     }
 
     if (body === '') {
       dom.newsBodyError.textContent = 'Body is required.';
+      dom.newsBodyInput.classList.add('invalid');
+      dom.newsBodyInput.setAttribute('aria-invalid', 'true');
+      isValid = false;
+    }
+
+    if (!isValid) {
       return;
     }
 

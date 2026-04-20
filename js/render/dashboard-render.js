@@ -107,8 +107,52 @@ function renderStatsGrid() {
   return wrapper;
 }
 
-function renderAnnouncementCard() {
+function renderDashboardLoading(state) {
+  const isLoading = state.weatherLoading
+    || state.announcementsLoading
+    || state.eventsLoading;
+
+  if (!isLoading) {
+    return null;
+  }
+
+  const section = createSectionCard('Loading Dashboard');
+  const card = document.createElement('article');
+  card.className = 'dashboard-card dashboard-card--loading';
+
+  const text = document.createElement('p');
+  text.className = 'dashboard-empty';
+  text.textContent = 'Loading dashboard snapshot…';
+
+  card.append(text);
+  section.append(card);
+  return section;
+}
+
+function createLoadingMessage(text) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'dashboard-loading-inline';
+
+  const spinner = document.createElement('span');
+  spinner.className = 'data-status-spinner';
+  spinner.setAttribute('aria-hidden', 'true');
+
+  const body = document.createElement('p');
+  body.className = 'dashboard-empty';
+  body.textContent = text;
+
+  wrapper.append(spinner, body);
+  return wrapper;
+}
+
+function renderAnnouncementCard(state) {
   const section = createSectionCard('Pinned Announcements');
+
+  if (state.announcementsLoading) {
+    section.append(createLoadingMessage('Loading pinned announcements…'));
+    return section;
+  }
+
   const announcements = getPinnedAnnouncements();
 
   if (announcements.length === 0) {
@@ -150,8 +194,14 @@ function renderAnnouncementCard() {
   return section;
 }
 
-function renderEventsCard() {
+function renderEventsCard(state) {
   const section = createSectionCard('Upcoming Events');
+
+  if (state.eventsLoading) {
+    section.append(createLoadingMessage('Loading upcoming events…'));
+    return section;
+  }
+
   const events = getUpcomingEvents();
 
   if (events.length === 0) {
@@ -189,6 +239,12 @@ function renderWeatherCard(state) {
   const section = createSectionCard('Chicago Weather');
   const card = document.createElement('article');
   card.className = 'dashboard-card dashboard-card--weather';
+
+  if (state.weatherLoading) {
+    card.append(createLoadingMessage('Loading weather snapshot…'));
+    section.append(card);
+    return section;
+  }
 
   if (!state.weather) {
     const empty = document.createElement('p');
@@ -242,11 +298,14 @@ function renderQuickActions() {
 
 export function renderDashboard(state) {
   const fragment = document.createDocumentFragment();
+  const loadingSection = renderDashboardLoading(state);
+
   fragment.append(
     renderWelcomeBanner(),
+    ...(loadingSection ? [loadingSection] : []),
     renderStatsGrid(),
-    renderAnnouncementCard(),
-    renderEventsCard(),
+    renderAnnouncementCard(state),
+    renderEventsCard(state),
     renderWeatherCard(state),
     renderQuickActions(),
   );

@@ -45,6 +45,9 @@ export function renderAnnouncementList(state) {
 
     if (announcement.id === state.selectedAnnouncementId) {
       button.classList.add('is-selected');
+      button.setAttribute('aria-pressed', 'true');
+    } else {
+      button.setAttribute('aria-pressed', 'false');
     }
 
     const title = document.createElement('p');

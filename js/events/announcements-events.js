@@ -7,6 +7,10 @@ function clearAnnouncementFeedback() {
   dom.announcementBodyError.textContent = '';
   dom.announcementFormStatus.textContent = '';
   dom.announcementFormError.textContent = '';
+  dom.announcementTitleInput.classList.remove('invalid');
+  dom.announcementBodyInput.classList.remove('invalid');
+  dom.announcementTitleInput.setAttribute('aria-invalid', 'false');
+  dom.announcementBodyInput.setAttribute('aria-invalid', 'false');
 }
 
 function clearAnnouncementForm(state) {
@@ -70,13 +74,23 @@ export function bindAnnouncementsEvents(state, render) {
     const title = dom.announcementTitleInput.value.trim();
     const body = dom.announcementBodyInput.value.trim();
 
+    let isValid = true;
+
     if (title === '') {
       dom.announcementTitleError.textContent = 'Title is required.';
-      return;
+      dom.announcementTitleInput.classList.add('invalid');
+      dom.announcementTitleInput.setAttribute('aria-invalid', 'true');
+      isValid = false;
     }
 
     if (body === '') {
       dom.announcementBodyError.textContent = 'Message is required.';
+      dom.announcementBodyInput.classList.add('invalid');
+      dom.announcementBodyInput.setAttribute('aria-invalid', 'true');
+      isValid = false;
+    }
+
+    if (!isValid) {
       return;
     }
 

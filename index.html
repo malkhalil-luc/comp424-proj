@@ -65,6 +65,12 @@
             </ul>
         </nav>
         <main id="main">
+            <section id="app-boot-status" class="app-boot-status" aria-live="polite">
+                <div class="app-boot-card">
+                    <span class="data-status-spinner" aria-hidden="true"></span>
+                    <p>Loading portal…</p>
+                </div>
+            </section>
             <section id="login-view" hidden></section>
             <section id="portal-view" hidden>
                 <h1 id="page-title">Dashboard</h1>
@@ -72,6 +78,7 @@
                 <div class="shell" id="support-view" hidden>
                     <section class="list-panel" aria-labelledby="list-heading">
                         <h2 id="list-heading" class="sr-only">Tickets List</h2>
+                        <div id="ticket-status-root" class="data-status-host"></div>
 
                         <div class="list-controls">
                             <div id="search-bar-container"></div>
@@ -123,11 +130,6 @@
                             </form>
                         </section>
 
-                        <div id="load-error-banner" role="alert" hidden>
-                            <p id="load-error-message"></p>
-                            <button type="button" id="retry-load-btn">Try Again</button>
-                        </div>
-                        <p id="stale-data-banner" role="status" hidden></p>
                         <ul id="ticket-list" aria-label="Support tickets" role="list">
                         </ul>
                         <p id="empty-state" hidden>No results found.</p>
@@ -142,6 +144,7 @@
                 <div class="shell" id="announcements-view" hidden>
                     <section class="list-panel" aria-labelledby="announcements-list-heading">
                         <h2 id="announcements-list-heading" class="sr-only">Announcements List</h2>
+                        <div id="announcements-status-root" class="data-status-host"></div>
 
                         <div class="list-controls">
                             <div id="announcement-search-container"></div>
@@ -189,6 +192,7 @@
                 <div class="shell" id="news-view" hidden>
                     <section class="list-panel" aria-labelledby="news-list-heading">
                         <h2 id="news-list-heading" class="sr-only">News List</h2>
+                        <div id="news-status-root" class="data-status-host"></div>
 
                         <div class="list-controls">
                             <div id="news-search-container"></div>
@@ -252,6 +256,7 @@
                 <div class="shell" id="directory-view" hidden>
                     <section class="list-panel" aria-labelledby="directory-list-heading">
                         <h2 id="directory-list-heading" class="sr-only">Employee Directory</h2>
+                        <div id="directory-status-root" class="data-status-host"></div>
 
                         <div class="list-controls">
                             <div id="directory-search-container"></div>
@@ -271,6 +276,7 @@
                 <div class="shell" id="calendar-view" hidden>
                     <section class="list-panel" aria-labelledby="calendar-list-heading">
                         <h2 id="calendar-list-heading" class="sr-only">Calendar Events</h2>
+                        <div id="calendar-status-root" class="data-status-host"></div>
 
                         <div class="list-controls">
                             <div id="calendar-search-container"></div>
