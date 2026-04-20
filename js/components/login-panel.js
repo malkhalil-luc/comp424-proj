@@ -7,6 +7,19 @@
 import { el } from '../lib/dom-builder.js';
 
 export function LoginPanel(container, { users, selectedUserId, onChange, onLogin }) {
+  if (users.length === 0) {
+    const card = el('section', { className: 'login-panel' }, [
+      el('h2', { className: 'login-panel-title', textContent: 'Sign in to the portal' }),
+      el('p', {
+        className: 'login-panel-subtitle',
+        textContent: 'Demo accounts could not be loaded. Reconnect and refresh the page.',
+      }),
+    ]);
+
+    container.replaceChildren(card);
+    return;
+  }
+
   const options = users.map((user) =>
     el('option', {
       value: user.id,

@@ -12,7 +12,9 @@ import {
 import {
   loadTicketsFromStorage,
   loadTicketsSavedAt,
+  loadUsersFromStorage,
   saveTicketsToStorage,
+  saveUsersToStorage,
 } from './data/storage.js';
 
 const DATA_URL = './data/tickets.json';
@@ -621,8 +623,17 @@ export async function loadDirectoryData() {
 export async function loadUsersData() {
   try {
     const items = normalizeUsers(await fetchJson(USERS_URL));
+    saveUsersToStorage(items);
     return { items, error: '' };
   } catch (error) {
+    const cachedUsers = normalizeUsers(loadUsersFromStorage());
+    if (cachedUsers.length > 0) {
+      return {
+        items: cachedUsers,
+        error: '',
+      };
+    }
+
     return {
       items: [],
       error: getGenericLoadMessage(error),

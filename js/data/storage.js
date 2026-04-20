@@ -1,6 +1,7 @@
 const STORAGE_KEY = 'portal-tickets-v1';
 const STORAGE_SAVED_AT_KEY = 'portal-tickets-saved-at-v1';
 const SESSION_USER_KEY = 'portal-session-user-v1';
+const USERS_KEY = 'portal-users-v1';
 
 export function loadTicketsFromStorage() {
   try {
@@ -63,5 +64,28 @@ export function clearSessionUserId() {
     localStorage.removeItem(SESSION_USER_KEY);
   } catch (err) {
     console.warn('localStorage session clear failed:', err);
+  }
+}
+
+export function loadUsersFromStorage() {
+  try {
+    const raw = localStorage.getItem(USERS_KEY);
+    if (!raw) {
+      return [];
+    }
+
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    console.warn('localStorage users read failed:', err);
+    return [];
+  }
+}
+
+export function saveUsersToStorage(users) {
+  try {
+    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+  } catch (err) {
+    console.warn('localStorage users write failed:', err);
   }
 }
