@@ -30,7 +30,6 @@
 | `js/lib/dom-builder.js` | Small `el()` helper from the course (Week 11) for building DOM trees |
 | `js/firebase.js` | Firebase app + Firestore exports (CDN ES modules) |
 | `js/data/storage.js` | `localStorage` for session user id and ticket cache |
-| `js/data/demo-users.js` | Demo users (admin / staff) for the login screen |
 | `js/events/*.js` | Click/submit handlers per feature; call `api` then `render` |
 | `js/render/*-render.js` | List + detail (and dashboard cards) for each section |
 | `js/components/search-bar.js` | Search input + clear + optional **visible count** summary (`el()` from `lib/`) |

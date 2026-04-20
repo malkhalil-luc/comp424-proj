@@ -1,0 +1,76 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  line-height: 1.5;
+  background: #f5f7fb;
+  color: #172033;
+}
+
+.page {
+  width: min(860px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 2rem 0 3rem;
+}
+
+h1,
+h2 {
+  margin-top: 0;
+}
+
+.lede,
+.app-link,
+.footnote {
+  margin-bottom: 1rem;
+}
+
+.card {
+  margin-bottom: 1rem;
+  padding: 1rem 1.25rem;
+  background: #fff;
+  border: 1px solid #cfd7e6;
+  border-radius: 12px;
+}
+
+.link-list,
+.checklist {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.link-list li,
+.checklist li {
+  margin-bottom: 0.55rem;
+}
+
+.checklist label {
+  cursor: pointer;
+}
+
+textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.75rem;
+  border: 1px solid #cfd7e6;
+  border-radius: 8px;
+  font: inherit;
+}
+
+button {
+  padding: 0.45rem 0.8rem;
+  border: 1px solid #c0cadc;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+}
+
+a {
+  color: #1e57c8;
+}
+
+input:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid #1e57c8;
+  outline-offset: 2px;
+}
