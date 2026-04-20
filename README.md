@@ -12,6 +12,9 @@
 - Run deployed version:
     Type URL in browser: `https://malkhalil-luc.github.io/comp424-proj/`
 
+## Testing
+Smoke test page: `http://localhost:4040/test/`
+
 ## Feature list
 
 - Demo **login** (admin vs staff) with session persistence.
@@ -106,3 +109,4 @@ The final test plan recorded actual results for every test case and was used to 
 
 ## Deployed URL
  `https://malkhalil-luc.github.io/comp424-proj/`
+
