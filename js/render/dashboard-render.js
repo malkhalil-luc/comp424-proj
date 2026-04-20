@@ -107,28 +107,6 @@ function renderStatsGrid() {
   return wrapper;
 }
 
-function renderDashboardLoading(state) {
-  const isLoading = state.weatherLoading
-    || state.announcementsLoading
-    || state.eventsLoading;
-
-  if (!isLoading) {
-    return null;
-  }
-
-  const section = createSectionCard('Loading Dashboard');
-  const card = document.createElement('article');
-  card.className = 'dashboard-card dashboard-card--loading';
-
-  const text = document.createElement('p');
-  text.className = 'dashboard-empty';
-  text.textContent = 'Loading dashboard snapshot…';
-
-  card.append(text);
-  section.append(card);
-  return section;
-}
-
 function createLoadingMessage(text) {
   const wrapper = document.createElement('div');
   wrapper.className = 'dashboard-loading-inline';
@@ -148,8 +126,23 @@ function createLoadingMessage(text) {
 function renderAnnouncementCard(state) {
   const section = createSectionCard('Pinned Announcements');
 
-  if (state.announcementsLoading) {
+  const isAnnouncementsLoading = state.announcementsLoading
+    || (
+      state.announcements.length === 0
+      && state.announcementsError === ''
+      && state.announcementsStaleNotice === ''
+    );
+
+  if (isAnnouncementsLoading) {
     section.append(createLoadingMessage('Loading pinned announcements…'));
+    return section;
+  }
+
+  if (state.announcementsError && state.announcements.length === 0) {
+    const empty = document.createElement('p');
+    empty.className = 'dashboard-empty';
+    empty.textContent = state.announcementsError;
+    section.append(empty);
     return section;
   }
 
@@ -197,8 +190,23 @@ function renderAnnouncementCard(state) {
 function renderEventsCard(state) {
   const section = createSectionCard('Upcoming Events');
 
-  if (state.eventsLoading) {
+  const isEventsLoading = state.eventsLoading
+    || (
+      state.events.length === 0
+      && state.eventsError === ''
+      && state.eventsStaleNotice === ''
+    );
+
+  if (isEventsLoading) {
     section.append(createLoadingMessage('Loading upcoming events…'));
+    return section;
+  }
+
+  if (state.eventsError && state.events.length === 0) {
+    const empty = document.createElement('p');
+    empty.className = 'dashboard-empty';
+    empty.textContent = state.eventsError;
+    section.append(empty);
     return section;
   }
 
@@ -240,7 +248,10 @@ function renderWeatherCard(state) {
   const card = document.createElement('article');
   card.className = 'dashboard-card dashboard-card--weather';
 
-  if (state.weatherLoading) {
+  const isWeatherLoading = state.weatherLoading
+    || (state.weather == null && state.weatherError === '');
+
+  if (isWeatherLoading) {
     card.append(createLoadingMessage('Loading weather snapshot…'));
     section.append(card);
     return section;
@@ -298,11 +309,9 @@ function renderQuickActions() {
 
 export function renderDashboard(state) {
   const fragment = document.createDocumentFragment();
-  const loadingSection = renderDashboardLoading(state);
 
   fragment.append(
     renderWelcomeBanner(),
-    ...(loadingSection ? [loadingSection] : []),
     renderStatsGrid(),
     renderAnnouncementCard(state),
     renderEventsCard(state),

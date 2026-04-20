@@ -179,7 +179,6 @@ export function render(state, handlers) {
   const currentUser = getCurrentUser();
 
   if (!currentUser) {
-    dom.appBootStatus.hidden = true;
     dom.sidebar.hidden = true;
     dom.sidebarBackdrop.hidden = true;
     dom.sidebarToggle.hidden = true;
@@ -196,7 +195,6 @@ export function render(state, handlers) {
     return;
   }
 
-  dom.appBootStatus.hidden = true;
   dom.sidebar.hidden = false;
   dom.sidebarBackdrop.hidden = false;
   dom.sidebarToggle.hidden = false;
@@ -222,7 +220,38 @@ export function render(state, handlers) {
     dom.newsView.hidden = true;
     dom.directoryView.hidden = true;
     dom.calendarView.hidden = true;
-    dom.dashboardView.replaceChildren(renderDashboard(state));
+
+    const dashboardLoading = state.weatherLoading
+      || state.announcementsLoading
+      || state.eventsLoading;
+    const dashboardError = !dashboardLoading
+      ? (
+        state.weatherError
+        || state.announcementsError
+        || state.eventsError
+        || ''
+      )
+      : '';
+    const dashboardStale = !dashboardLoading
+      ? [state.announcementsStaleNotice, state.eventsStaleNotice]
+        .filter(Boolean)
+        .join(' ')
+      : '';
+
+    const dashboardStatusRoot = document.createElement('div');
+    dashboardStatusRoot.className = 'data-status-host';
+
+    StatusBanner(dashboardStatusRoot, {
+      isLoading: dashboardLoading,
+      error: dashboardError,
+      staleMessage: dashboardStale,
+      loadingMessage: 'Loading dashboard…',
+    }, { onRetry: handlers.onRetryDashboardLoad });
+
+    dom.dashboardView.replaceChildren(
+      dashboardStatusRoot,
+      renderDashboard(state)
+    );
     dom.portalView.hidden = false;
     return;
   }

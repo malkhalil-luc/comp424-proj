@@ -1,7 +1,4 @@
 export const dom = {
-  get appBootStatus() {
-    return document.querySelector('#app-boot-status');
-  },
   get appShell() {
     return document.querySelector('.app-shell');
   },

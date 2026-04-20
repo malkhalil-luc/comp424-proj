@@ -44,30 +44,6 @@ body {
   color: var(--color-text-primary);
 }
 
-.app-boot-status {
-  display: grid;
-  place-items: center;
-  min-height: calc(100vh - var(--top-bar-height) - 6rem);
-}
-
-.app-boot-card {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.9rem 1.1rem;
-  border: 1px solid var(--color-border);
-  border-radius: 0.9rem;
-  background-color: var(--color-surface);
-  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
-}
-
-.app-boot-card p {
-  margin: 0;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-}
-
-
 .skip-link {
   position: absolute;
   top: -100%;

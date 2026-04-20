@@ -50,13 +50,14 @@ function syncActiveSectionFromHash() {
   }
 }
 
-async function registerServiceWorker() {
+async function unregisterServiceWorkers() {
   if (!('serviceWorker' in navigator)) {
     return;
   }
 
   try {
-    await navigator.serviceWorker.register('/sw.js');
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(registrations.map((registration) => registration.unregister()));
   } catch {}
 }
 
@@ -128,6 +129,7 @@ function renderAppState() {
       state.selectedId = null;
       renderAppState();
     },
+    onRetryDashboardLoad: reloadDashboardSections,
     onRetryLoad: loadAndRenderTickets,
     onRetryAnnouncementsLoad: loadAnnouncementsState,
     onRetryNewsLoad: loadNewsState,
@@ -308,9 +310,17 @@ async function loadDirectoryState() {
   renderAppState();
 }
 
+async function reloadDashboardSections() {
+  await Promise.all([
+    loadDashboardState(),
+    loadEventsState(),
+    loadAnnouncementsState(),
+  ]);
+}
+
 async function init() {
   redirectPathnameToHash();
-  registerServiceWorker();
+  unregisterServiceWorkers();
 
   const savedUserId = loadSessionUserId();
   if (savedUserId && state.users.some((user) => user.id === savedUserId)) {
