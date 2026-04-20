@@ -9,6 +9,10 @@ import {
   getAccessibleTickets,
   getCurrentUser,
   getNewsCategoryCounts,
+  getSelectedAnnouncement,
+  getSelectedEvent,
+  getSelectedEmployee,
+  getSelectedNewsArticle,
   getSelectedTicket,
   getTicketStatusCounts,
   getVisibleTickets,
@@ -250,7 +254,9 @@ export function render(state, handlers) {
 
     dom.dashboardView.replaceChildren(
       dashboardStatusRoot,
-      renderDashboard(state)
+      renderDashboard(state, {
+        onAction: handlers.onDashboardAction,
+      })
     );
     dom.portalView.hidden = false;
     return;
@@ -264,6 +270,7 @@ export function render(state, handlers) {
     dom.newsView.hidden = true;
     dom.directoryView.hidden = true;
     dom.calendarView.hidden = true;
+    dom.announcementsView.classList.remove('detail-view-active');
 
     StatusBanner(dom.announcementsStatusRoot, {
       isLoading: state.announcementsLoading,
@@ -302,12 +309,17 @@ export function render(state, handlers) {
       summaryText: `${getVisibleAnnouncements().length} shown · ${state.announcements.length} total`,
     });
 
+    dom.announcementsView.classList.toggle(
+      'detail-view-active',
+      Boolean(getSelectedAnnouncement()) && !state.showAnnouncementForm
+    );
+
     renderAnnouncementForm(state);
     renderAnnouncementList(state);
     if (state.showAnnouncementForm) {
       renderFormPlaceholder(dom.announcementDetail, 'Finish or cancel the announcement form to view details.');
     } else {
-      renderAnnouncementDetail(state);
+      renderAnnouncementDetail(state, handlers.onBackFromAnnouncementDetail);
     }
     dom.portalView.hidden = false;
     return;
@@ -321,6 +333,7 @@ export function render(state, handlers) {
     dom.newsView.hidden = false;
     dom.directoryView.hidden = true;
     dom.calendarView.hidden = true;
+    dom.newsView.classList.remove('detail-view-active');
 
     StatusBanner(dom.newsStatusRoot, {
       isLoading: state.newsLoading,
@@ -375,12 +388,17 @@ export function render(state, handlers) {
       ariaLabel: 'Filter news by category',
     });
 
+    dom.newsView.classList.toggle(
+      'detail-view-active',
+      Boolean(getSelectedNewsArticle()) && !state.showNewsForm
+    );
+
     renderNewsForm(state, currentUser);
     renderNewsList(state);
     if (state.showNewsForm) {
       renderFormPlaceholder(dom.newsDetail, 'Finish or cancel the news form to view details.');
     } else {
-      renderNewsDetail();
+      renderNewsDetail(handlers.onBackFromNewsDetail);
     }
     dom.portalView.hidden = false;
     return;
@@ -394,6 +412,7 @@ export function render(state, handlers) {
     dom.newsView.hidden = true;
     dom.directoryView.hidden = false;
     dom.calendarView.hidden = true;
+    dom.directoryView.classList.remove('detail-view-active');
 
     StatusBanner(dom.directoryStatusRoot, {
       isLoading: state.directoryLoading,
@@ -446,8 +465,13 @@ export function render(state, handlers) {
       ariaLabel: 'Filter employees by department',
     });
 
+    dom.directoryView.classList.toggle(
+      'detail-view-active',
+      Boolean(getSelectedEmployee())
+    );
+
     renderDirectoryList(state);
-    renderDirectoryDetail();
+    renderDirectoryDetail(handlers.onBackFromDirectoryDetail);
     dom.portalView.hidden = false;
     return;
   }
@@ -460,6 +484,7 @@ export function render(state, handlers) {
     dom.newsView.hidden = true;
     dom.directoryView.hidden = true;
     dom.calendarView.hidden = false;
+    dom.calendarView.classList.remove('detail-view-active');
 
     StatusBanner(dom.calendarStatusRoot, {
       isLoading: state.eventsLoading,
@@ -514,12 +539,17 @@ export function render(state, handlers) {
       ariaLabel: 'Filter events by type',
     });
 
+    dom.calendarView.classList.toggle(
+      'detail-view-active',
+      Boolean(getSelectedEvent()) && !state.showEventForm
+    );
+
     renderEventForm(state, currentUser);
     renderCalendarList(state);
     if (state.showEventForm) {
       renderFormPlaceholder(dom.calendarDetail, 'Finish or cancel the event form to view details.');
     } else {
-      renderCalendarDetail();
+      renderCalendarDetail(handlers.onBackFromCalendarDetail);
     }
     dom.portalView.hidden = false;
     return;
@@ -532,6 +562,7 @@ export function render(state, handlers) {
   dom.newsView.hidden = true;
   dom.directoryView.hidden = true;
   dom.calendarView.hidden = true;
+  dom.supportShell.classList.remove('detail-view-active');
 
   StatusBanner(dom.ticketStatusRoot, {
     isLoading: state.isLoading,
@@ -541,7 +572,10 @@ export function render(state, handlers) {
   }, { onRetry: handlers.onRetryLoad });
 
   dom.newTicketFormSection.hidden = state.isLoading || !state.showNewTicketForm;
-  dom.supportShell.classList.toggle('detail-view-active', Boolean(getSelectedTicket()));
+  dom.supportShell.classList.toggle(
+    'detail-view-active',
+    Boolean(getSelectedTicket()) && !state.showNewTicketForm
+  );
 
   if (state.isLoading) {
     dom.searchBarContainer.replaceChildren();

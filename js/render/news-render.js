@@ -84,7 +84,7 @@ export function renderNewsList(state) {
   });
 }
 
-export function renderNewsDetail() {
+export function renderNewsDetail(onBack) {
   const article = getSelectedNewsArticle();
   const currentUser = getCurrentUser();
 
@@ -100,6 +100,12 @@ export function renderNewsDetail() {
 
   const content = document.createElement('div');
   content.className = 'ticket-detail-content';
+
+  const backBtn = document.createElement('button');
+  backBtn.type = 'button';
+  backBtn.id = 'news-back-btn';
+  backBtn.textContent = '← Back';
+  backBtn.addEventListener('click', onBack);
 
   const header = document.createElement('div');
   header.className = 'ticket-detail-header';
@@ -137,7 +143,7 @@ export function renderNewsDetail() {
   body.className = 'ticket-detail-description';
   body.textContent = article.body;
 
-  content.append(header, summary, body);
+  content.append(backBtn, header, summary, body);
 
   if (currentUser?.role === 'admin') {
     const actions = document.createElement('div');

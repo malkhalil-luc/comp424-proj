@@ -1,19 +1,17 @@
 import { dom } from '../dom.js';
 import { getCurrentUser, getSelectedEvent } from '../state.js';
 import { removeEvent, saveEvent } from '../api.js';
+import {
+  clearFieldValidation,
+  validateTextField,
+} from '../lib/form-validation.js';
 
 function clearEventFeedback() {
-  dom.eventTitleError.textContent = '';
-  dom.eventStartsAtError.textContent = '';
-  dom.eventLocationError.textContent = '';
   dom.eventFormStatus.textContent = '';
   dom.eventFormError.textContent = '';
-  dom.eventTitleInput.classList.remove('invalid');
-  dom.eventStartsAtInput.classList.remove('invalid');
-  dom.eventLocationInput.classList.remove('invalid');
-  dom.eventTitleInput.setAttribute('aria-invalid', 'false');
-  dom.eventStartsAtInput.setAttribute('aria-invalid', 'false');
-  dom.eventLocationInput.setAttribute('aria-invalid', 'false');
+  clearFieldValidation(dom.eventTitleInput, dom.eventTitleError);
+  clearFieldValidation(dom.eventStartsAtInput, dom.eventStartsAtError);
+  clearFieldValidation(dom.eventLocationInput, dom.eventLocationError);
 }
 
 function clearEventForm(state) {
@@ -68,30 +66,25 @@ export function bindCalendarEvents(state, render) {
     const startsAt = dom.eventStartsAtInput.value.trim();
     const location = dom.eventLocationInput.value.trim();
 
-    let isValid = true;
+    const hasValidTitle = validateTextField(dom.eventTitleInput, dom.eventTitleError, {
+      label: 'Title',
+      minLength: 4,
+    });
+    const hasValidLocation = validateTextField(dom.eventLocationInput, dom.eventLocationError, {
+      label: 'Location',
+      minLength: 2,
+    });
+    const hasStartsAt = startsAt !== '';
 
-    if (title === '') {
-      dom.eventTitleError.textContent = 'Title is required.';
-      dom.eventTitleInput.classList.add('invalid');
-      dom.eventTitleInput.setAttribute('aria-invalid', 'true');
-      isValid = false;
-    }
-
-    if (startsAt === '') {
+    if (!hasStartsAt) {
       dom.eventStartsAtError.textContent = 'Start date and time are required.';
       dom.eventStartsAtInput.classList.add('invalid');
       dom.eventStartsAtInput.setAttribute('aria-invalid', 'true');
-      isValid = false;
+    } else {
+      clearFieldValidation(dom.eventStartsAtInput, dom.eventStartsAtError);
     }
 
-    if (location === '') {
-      dom.eventLocationError.textContent = 'Location is required.';
-      dom.eventLocationInput.classList.add('invalid');
-      dom.eventLocationInput.setAttribute('aria-invalid', 'true');
-      isValid = false;
-    }
-
-    if (!isValid) {
+    if (!hasValidTitle || !hasValidLocation || !hasStartsAt) {
       return;
     }
 

@@ -1,6 +1,10 @@
 import { dom } from '../dom.js';
 import { createTicket, persistTickets, saveTicketChanges } from '../api.js';
 import {
+  clearFieldValidation,
+  validateTextField,
+} from '../lib/form-validation.js';
+import {
   canManageTicket,
   canReplyToTicket,
   canReopenTicket,
@@ -9,15 +13,10 @@ import {
 } from '../state.js';
 
 function clearFormFeedback() {
-  dom.titleError.textContent = '';
-  dom.descriptionError.textContent = '';
   dom.formStatus.textContent = '';
   dom.formError.textContent = '';
-
-  dom.titleInput.classList.remove('invalid');
-  dom.descriptionInput.classList.remove('invalid');
-  dom.titleInput.setAttribute('aria-invalid', 'false');
-  dom.descriptionInput.setAttribute('aria-invalid', 'false');
+  clearFieldValidation(dom.titleInput, dom.titleError);
+  clearFieldValidation(dom.descriptionInput, dom.descriptionError);
 }
 
 function clearForm() {
@@ -100,21 +99,17 @@ export function bindSupportEvents(state, render) {
     event.preventDefault();
     clearFormFeedback();
 
-    let isValid = true;
-
-    if (dom.titleInput.value.trim() === '') {
-      dom.titleError.textContent = 'Title is required.';
-      dom.titleInput.classList.add('invalid');
-      dom.titleInput.setAttribute('aria-invalid', 'true');
-      isValid = false;
-    }
-
-    if (dom.descriptionInput.value.trim() === '') {
-      dom.descriptionError.textContent = 'Description is required.';
-      dom.descriptionInput.classList.add('invalid');
-      dom.descriptionInput.setAttribute('aria-invalid', 'true');
-      isValid = false;
-    }
+    const isValid = [
+      validateTextField(dom.titleInput, dom.titleError, {
+        label: 'Title',
+        minLength: 4,
+      }),
+      validateTextField(dom.descriptionInput, dom.descriptionError, {
+        label: 'Description',
+        minLength: 10,
+        minLengthMessage: 'Description must be at least 10 characters.',
+      }),
+    ].every(Boolean);
 
     if (!isValid) return;
 

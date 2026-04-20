@@ -1,16 +1,16 @@
 import { dom } from '../dom.js';
 import { removeAnnouncement, saveAnnouncement } from '../api.js';
+import {
+  clearFieldValidation,
+  validateTextField,
+} from '../lib/form-validation.js';
 import { getCurrentUser, getSelectedAnnouncement } from '../state.js';
 
 function clearAnnouncementFeedback() {
-  dom.announcementTitleError.textContent = '';
-  dom.announcementBodyError.textContent = '';
   dom.announcementFormStatus.textContent = '';
   dom.announcementFormError.textContent = '';
-  dom.announcementTitleInput.classList.remove('invalid');
-  dom.announcementBodyInput.classList.remove('invalid');
-  dom.announcementTitleInput.setAttribute('aria-invalid', 'false');
-  dom.announcementBodyInput.setAttribute('aria-invalid', 'false');
+  clearFieldValidation(dom.announcementTitleInput, dom.announcementTitleError);
+  clearFieldValidation(dom.announcementBodyInput, dom.announcementBodyError);
 }
 
 function clearAnnouncementForm(state) {
@@ -74,21 +74,17 @@ export function bindAnnouncementsEvents(state, render) {
     const title = dom.announcementTitleInput.value.trim();
     const body = dom.announcementBodyInput.value.trim();
 
-    let isValid = true;
-
-    if (title === '') {
-      dom.announcementTitleError.textContent = 'Title is required.';
-      dom.announcementTitleInput.classList.add('invalid');
-      dom.announcementTitleInput.setAttribute('aria-invalid', 'true');
-      isValid = false;
-    }
-
-    if (body === '') {
-      dom.announcementBodyError.textContent = 'Message is required.';
-      dom.announcementBodyInput.classList.add('invalid');
-      dom.announcementBodyInput.setAttribute('aria-invalid', 'true');
-      isValid = false;
-    }
+    const isValid = [
+      validateTextField(dom.announcementTitleInput, dom.announcementTitleError, {
+        label: 'Title',
+        minLength: 4,
+      }),
+      validateTextField(dom.announcementBodyInput, dom.announcementBodyError, {
+        label: 'Message',
+        minLength: 10,
+        minLengthMessage: 'Message must be at least 10 characters.',
+      }),
+    ].every(Boolean);
 
     if (!isValid) {
       return;

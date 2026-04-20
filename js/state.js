@@ -1,10 +1,8 @@
-import { demoUsers } from './data/demo-users.js';
-
 export const state = {
   tickets: [],
-  users: demoUsers,
+  users: [],
   currentUserId: null,
-  selectedLoginUserId: 'staff-001',
+  selectedLoginUserId: null,
   activeSection: 'dashboard',
   query: '',
   activeFilter: 'all',
@@ -60,6 +58,28 @@ const PRIORITY_RANK = {
   low: 1,
 };
 
+function normalizeSearchText(value) {
+  return String(value ?? '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function createSearchTokens(query) {
+  const normalized = normalizeSearchText(query);
+  return normalized === '' ? [] : normalized.split(' ');
+}
+
+function matchesSearchTokens(fields, query) {
+  const tokens = createSearchTokens(query);
+  if (tokens.length === 0) {
+    return true;
+  }
+
+  const haystack = normalizeSearchText(fields.join(' '));
+  return tokens.every((token) => haystack.includes(token));
+}
+
 export const ticketStatuses = ['Open', 'In Progress', 'Closed'];
 export const ticketPriorities = ['low', 'medium', 'high'];
 
@@ -86,16 +106,12 @@ export function getPinnedAnnouncements() {
 }
 
 export function getVisibleAnnouncements() {
-  const query = state.announcementQuery.trim().toLowerCase();
-
   return [...state.announcements]
     .filter((announcement) => {
-      if (query === '') {
-        return true;
-      }
-
-      return announcement.title.toLowerCase().includes(query)
-        || announcement.body.toLowerCase().includes(query);
+      return matchesSearchTokens(
+        [announcement.title, announcement.body],
+        state.announcementQuery
+      );
     })
     .sort((a, b) => {
       if (a.isPinned !== b.isPinned) {
@@ -122,8 +138,6 @@ export function getNewsCategoryCounts() {
 }
 
 export function getVisibleNews() {
-  const query = state.newsQuery.trim().toLowerCase();
-
   return [...state.newsArticles]
     .filter((article) => {
       const matchesCategory = state.activeNewsCategory === 'all'
@@ -132,14 +146,10 @@ export function getVisibleNews() {
         return false;
       }
 
-      if (query === '') {
-        return true;
-      }
-
-      return article.title.toLowerCase().includes(query)
-        || article.summary.toLowerCase().includes(query)
-        || article.body.toLowerCase().includes(query)
-        || article.category.toLowerCase().includes(query);
+      return matchesSearchTokens(
+        [article.title, article.summary, article.body, article.category],
+        state.newsQuery
+      );
     })
     .sort((a, b) => {
       if (a.isFeatured !== b.isFeatured) {
@@ -166,8 +176,6 @@ export function getDepartmentCounts() {
 }
 
 export function getFilteredEmployees() {
-  const query = state.directoryQuery.trim().toLowerCase();
-
   return state.employees.filter((employee) => {
     const matchesDepartment = state.activeDepartment === 'all'
       || employee.department === state.activeDepartment;
@@ -175,14 +183,10 @@ export function getFilteredEmployees() {
       return false;
     }
 
-    if (query === '') {
-      return true;
-    }
-
-    return employee.name.toLowerCase().includes(query)
-      || employee.title.toLowerCase().includes(query)
-      || employee.department.toLowerCase().includes(query)
-      || employee.email.toLowerCase().includes(query);
+    return matchesSearchTokens(
+      [employee.name, employee.title, employee.department, employee.email],
+      state.directoryQuery
+    );
   });
 }
 
@@ -212,8 +216,6 @@ export function getEventTypeCounts() {
 }
 
 export function getFilteredEvents() {
-  const query = state.calendarQuery.trim().toLowerCase();
-
   return state.events.filter((event) => {
     const matchesType = state.activeEventType === 'all'
       || event.eventType === state.activeEventType;
@@ -221,15 +223,16 @@ export function getFilteredEvents() {
       return false;
     }
 
-    if (query === '') {
-      return true;
-    }
-
-    return event.title.toLowerCase().includes(query)
-      || event.eventType.toLowerCase().includes(query)
-      || event.location.toLowerCase().includes(query)
-      || event.description.toLowerCase().includes(query)
-      || event.organizer.toLowerCase().includes(query);
+    return matchesSearchTokens(
+      [
+        event.title,
+        event.eventType,
+        event.location,
+        event.description,
+        event.organizer,
+      ],
+      state.calendarQuery
+    );
   });
 }
 
@@ -260,16 +263,13 @@ export function getAccessibleTickets() {
 }
 
 export function getFilteredTickets() {
-  const query = state.query.toLowerCase().trim();
-
   return getAccessibleTickets().filter(ticket => {
-    const title = String(ticket.title ?? '').toLowerCase();
-    const description = String(ticket.description ?? '').toLowerCase();
     const messages = Array.isArray(ticket.messages) ? ticket.messages : [];
-    const matchesMessage = messages.some(message =>
-      String(message.body ?? '').toLowerCase().includes(query)
+    const messageBodies = messages.map((message) => String(message.body ?? ''));
+    const matchesQuery = matchesSearchTokens(
+      [ticket.title, ticket.description, ...messageBodies],
+      state.query
     );
-    const matchesQuery = title.includes(query) || description.includes(query) || matchesMessage;
     const matchesFilter = state.activeFilter === 'all'
       || ticket.ticketStatus === state.activeFilter;
 

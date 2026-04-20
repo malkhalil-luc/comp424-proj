@@ -22,15 +22,18 @@ function formatDateTime(isoString) {
 
 function formatDashboardTimestamp() {
   const now = new Date();
-
-  return now.toLocaleString(undefined, {
+  const dateText = now.toLocaleDateString(undefined, {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
     year: 'numeric',
+  });
+  const timeText = now.toLocaleTimeString(undefined, {
     hour: 'numeric',
     minute: '2-digit',
   });
+
+  return `${dateText} · Local Time ${timeText}`;
 }
 
 function createSectionCard(titleText) {
@@ -84,13 +87,27 @@ function renderWelcomeBanner() {
   return section;
 }
 
+function getStatTone(label) {
+  const normalized = label.toLowerCase();
+  if (normalized.includes('open')) return 'open';
+  if (normalized.includes('closed')) return 'closed';
+  if (normalized.includes('high')) return 'priority';
+  if (normalized.includes('unassigned')) return 'warning';
+  if (normalized.includes('event')) return 'event';
+  return 'neutral';
+}
+
 function renderStatsGrid() {
-  const wrapper = document.createElement('section');
+  const section = createSectionCard('Ticket Summary');
+  section.classList.add('dashboard-summary');
+
+  const wrapper = document.createElement('div');
   wrapper.className = 'dashboard-stats';
 
   getDashboardStats().forEach((stat) => {
-    const card = document.createElement('article');
-    card.className = 'stat-card';
+    const card = document.createElement('a');
+    card.className = `stat-card stat-card--${getStatTone(stat.label)}`;
+    card.href = '#support';
 
     const value = document.createElement('p');
     value.className = 'stat-card-value';
@@ -104,7 +121,8 @@ function renderStatsGrid() {
     wrapper.append(card);
   });
 
-  return wrapper;
+  section.append(wrapper);
+  return section;
 }
 
 function createLoadingMessage(text) {
@@ -283,31 +301,62 @@ function renderWeatherCard(state) {
   return section;
 }
 
-function renderQuickActions() {
+function createActionLink(action, titleText, bodyText) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'dashboard-action-link';
+  button.dataset.dashboardAction = action;
+
+  const title = document.createElement('h3');
+  title.className = 'dashboard-card-title';
+  title.textContent = titleText;
+
+  const body = document.createElement('p');
+  body.className = 'dashboard-card-body';
+  body.textContent = bodyText;
+
+  button.append(title, body);
+  return button;
+}
+
+function renderQuickActions({ onAction }) {
   const section = createSectionCard('Quick Actions');
   const currentUser = getCurrentUser();
 
   const card = document.createElement('article');
   card.className = 'dashboard-card dashboard-card--action';
 
-  const title = document.createElement('h3');
-  title.className = 'dashboard-card-title';
-  title.textContent = currentUser?.role === 'admin'
-    ? 'Manage support queue'
-    : 'Submit a new support request';
+  const grid = document.createElement('div');
+  grid.className = 'dashboard-action-grid';
 
-  const body = document.createElement('p');
-  body.className = 'dashboard-card-body';
-  body.textContent = currentUser?.role === 'admin'
-    ? 'Review assignments, update ticket status, and respond to employees from the Support section.'
-    : 'Use the Support section to submit a new ticket, track replies, and reopen a closed issue when needed.';
+  const actions = currentUser?.role === 'admin'
+    ? [
+      ['view-support', 'Review Support', 'Open the support queue and manage ticket activity.'],
+      ['view-announcements', 'Publish Updates', 'Open announcements and post a new internal update.'],
+      ['view-calendar', 'Manage Calendar', 'Open the calendar and review upcoming events.'],
+      ['view-directory', 'Open Directory', 'Browse employee records and department details.'],
+    ]
+    : [
+      ['new-ticket', 'Create Support Ticket', 'Open Support and start a new request.'],
+      ['view-announcements', 'Read Announcements', 'Jump to the latest internal updates.'],
+      ['view-calendar', 'See Upcoming Events', 'Open the calendar and review what is next.'],
+      ['view-directory', 'Browse Directory', 'Find people, departments, and contact details.'],
+    ];
 
-  card.append(title, body);
+  actions.forEach(([action, title, body]) => {
+    const button = createActionLink(action, title, body);
+    button.addEventListener('click', () => {
+      onAction(action);
+    });
+    grid.append(button);
+  });
+
+  card.append(grid);
   section.append(card);
   return section;
 }
 
-export function renderDashboard(state) {
+export function renderDashboard(state, { onAction }) {
   const fragment = document.createDocumentFragment();
 
   fragment.append(
@@ -316,7 +365,7 @@ export function renderDashboard(state) {
     renderAnnouncementCard(state),
     renderEventsCard(state),
     renderWeatherCard(state),
-    renderQuickActions(),
+    renderQuickActions({ onAction }),
   );
   return fragment;
 }

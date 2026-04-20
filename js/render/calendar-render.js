@@ -45,6 +45,9 @@ export function renderCalendarList(state) {
 
     if (event.id === state.selectedEventId) {
       button.classList.add('is-selected');
+      button.setAttribute('aria-pressed', 'true');
+    } else {
+      button.setAttribute('aria-pressed', 'false');
     }
 
     const title = document.createElement('p');
@@ -84,7 +87,7 @@ function createMetaRow(labelText, valueText) {
   return row;
 }
 
-export function renderCalendarDetail() {
+export function renderCalendarDetail(onBack) {
   const event = getSelectedEvent();
   const currentUser = getCurrentUser();
   dom.calendarDetail.innerHTML = '';
@@ -99,6 +102,12 @@ export function renderCalendarDetail() {
 
   const content = document.createElement('div');
   content.className = 'ticket-detail-content';
+
+  const backBtn = document.createElement('button');
+  backBtn.type = 'button';
+  backBtn.id = 'calendar-back-btn';
+  backBtn.textContent = '← Back';
+  backBtn.addEventListener('click', onBack);
 
   const header = document.createElement('div');
   header.className = 'ticket-detail-header';
@@ -133,7 +142,7 @@ export function renderCalendarDetail() {
   description.className = 'ticket-detail-description';
   description.textContent = event.description;
 
-  content.append(header, details, description);
+  content.append(backBtn, header, details, description);
 
   if (currentUser?.role === 'admin') {
     const actions = document.createElement('div');

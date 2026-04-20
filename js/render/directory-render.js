@@ -29,6 +29,9 @@ export function renderDirectoryList(state) {
 
     if (employee.id === state.selectedEmployeeId) {
       button.classList.add('is-selected');
+      button.setAttribute('aria-pressed', 'true');
+    } else {
+      button.setAttribute('aria-pressed', 'false');
     }
 
     const name = document.createElement('p');
@@ -67,7 +70,7 @@ function createMetaRow(labelText, valueText) {
   return row;
 }
 
-export function renderDirectoryDetail() {
+export function renderDirectoryDetail(onBack) {
   const employee = getSelectedEmployee();
   dom.directoryDetail.innerHTML = '';
 
@@ -81,6 +84,12 @@ export function renderDirectoryDetail() {
 
   const content = document.createElement('div');
   content.className = 'ticket-detail-content';
+
+  const backBtn = document.createElement('button');
+  backBtn.type = 'button';
+  backBtn.id = 'directory-back-btn';
+  backBtn.textContent = '← Back';
+  backBtn.addEventListener('click', onBack);
 
   const header = document.createElement('div');
   header.className = 'ticket-detail-header';
@@ -108,6 +117,6 @@ export function renderDirectoryDetail() {
   bio.className = 'ticket-detail-description';
   bio.textContent = employee.bio;
 
-  content.append(header, details, bio);
+  content.append(backBtn, header, details, bio);
   dom.directoryDetail.append(content);
 }

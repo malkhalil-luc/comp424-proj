@@ -19,6 +19,7 @@ import {
   loadEventsData,
   loadNewsData,
   loadTicketsData,
+  loadUsersData,
 } from './api.js';
 
 const VALID_HASH_SECTIONS = [
@@ -125,8 +126,46 @@ function resetPortalUi() {
 
 function renderAppState() {
   render(state, {
+    onDashboardAction: (action) => {
+      if (action === 'new-ticket') {
+        state.activeSection = 'support';
+        state.showNewTicketForm = true;
+        state.selectedId = null;
+        window.location.hash = 'support';
+      } else if (action === 'view-announcements') {
+        state.activeSection = 'announcements';
+        window.location.hash = 'announcements';
+      } else if (action === 'view-calendar') {
+        state.activeSection = 'calendar';
+        window.location.hash = 'calendar';
+      } else if (action === 'view-directory') {
+        state.activeSection = 'directory';
+        window.location.hash = 'directory';
+      } else if (action === 'view-support') {
+        state.activeSection = 'support';
+        window.location.hash = 'support';
+      }
+
+      renderAppState();
+    },
     onBackFromDetail: () => {
       state.selectedId = null;
+      renderAppState();
+    },
+    onBackFromAnnouncementDetail: () => {
+      state.selectedAnnouncementId = null;
+      renderAppState();
+    },
+    onBackFromNewsDetail: () => {
+      state.selectedNewsId = null;
+      renderAppState();
+    },
+    onBackFromDirectoryDetail: () => {
+      state.selectedEmployeeId = null;
+      renderAppState();
+    },
+    onBackFromCalendarDetail: () => {
+      state.selectedEventId = null;
       renderAppState();
     },
     onRetryDashboardLoad: reloadDashboardSections,
@@ -321,6 +360,10 @@ async function reloadDashboardSections() {
 async function init() {
   redirectPathnameToHash();
   unregisterServiceWorkers();
+
+  const usersResult = await loadUsersData();
+  state.users = usersResult.items;
+  state.selectedLoginUserId = state.users[0]?.id ?? null;
 
   const savedUserId = loadSessionUserId();
   if (savedUserId && state.users.some((user) => user.id === savedUserId)) {

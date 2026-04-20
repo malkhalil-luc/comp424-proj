@@ -20,6 +20,7 @@ const EVENTS_URL = './data/events.json';
 const ANNOUNCEMENTS_URL = './data/announcements.json';
 const NEWS_URL = './data/news.json';
 const EMPLOYEES_URL = './data/employees.json';
+const USERS_URL = './data/users.json';
 const LOAD_TIMEOUT_MS = 8000;
 const DEFAULT_CREATOR_ID = 'staff-001';
 const CHICAGO_WEATHER_URL = 'https://api.open-meteo.com/v1/forecast?latitude=41.8781&longitude=-87.6298&current=temperature_2m,weather_code,wind_speed_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FChicago';
@@ -210,6 +211,21 @@ function normalizeEmployees(employees) {
     && typeof employee.phone === 'string'
     && typeof employee.office === 'string'
     && typeof employee.bio === 'string'
+  );
+}
+
+function normalizeUsers(users) {
+  if (!Array.isArray(users)) {
+    throw makeError('validation', 'Users data must be an array.');
+  }
+
+  return users.filter((user) =>
+    user
+    && typeof user.id === 'string'
+    && typeof user.name === 'string'
+    && typeof user.role === 'string'
+    && typeof user.email === 'string'
+    && typeof user.department === 'string'
   );
 }
 
@@ -598,6 +614,18 @@ export async function loadDirectoryData() {
       items: [],
       error: getGenericLoadMessage(error),
       staleNotice: '',
+    };
+  }
+}
+
+export async function loadUsersData() {
+  try {
+    const items = normalizeUsers(await fetchJson(USERS_URL));
+    return { items, error: '' };
+  } catch (error) {
+    return {
+      items: [],
+      error: getGenericLoadMessage(error),
     };
   }
 }

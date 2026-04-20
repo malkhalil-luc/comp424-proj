@@ -1,19 +1,17 @@
 import { dom } from '../dom.js';
 import { getCurrentUser, getSelectedNewsArticle } from '../state.js';
 import { removeNewsArticle, saveNewsArticle } from '../api.js';
+import {
+  clearFieldValidation,
+  validateTextField,
+} from '../lib/form-validation.js';
 
 function clearNewsFeedback() {
-  dom.newsTitleError.textContent = '';
-  dom.newsSummaryError.textContent = '';
-  dom.newsBodyError.textContent = '';
   dom.newsFormStatus.textContent = '';
   dom.newsFormError.textContent = '';
-  dom.newsTitleInput.classList.remove('invalid');
-  dom.newsSummaryInput.classList.remove('invalid');
-  dom.newsBodyInput.classList.remove('invalid');
-  dom.newsTitleInput.setAttribute('aria-invalid', 'false');
-  dom.newsSummaryInput.setAttribute('aria-invalid', 'false');
-  dom.newsBodyInput.setAttribute('aria-invalid', 'false');
+  clearFieldValidation(dom.newsTitleInput, dom.newsTitleError);
+  clearFieldValidation(dom.newsSummaryInput, dom.newsSummaryError);
+  clearFieldValidation(dom.newsBodyInput, dom.newsBodyError);
 }
 
 function clearNewsForm(state) {
@@ -78,28 +76,21 @@ export function bindNewsEvents(state, render) {
     const summary = dom.newsSummaryInput.value.trim();
     const body = dom.newsBodyInput.value.trim();
 
-    let isValid = true;
-
-    if (title === '') {
-      dom.newsTitleError.textContent = 'Title is required.';
-      dom.newsTitleInput.classList.add('invalid');
-      dom.newsTitleInput.setAttribute('aria-invalid', 'true');
-      isValid = false;
-    }
-
-    if (summary === '') {
-      dom.newsSummaryError.textContent = 'Summary is required.';
-      dom.newsSummaryInput.classList.add('invalid');
-      dom.newsSummaryInput.setAttribute('aria-invalid', 'true');
-      isValid = false;
-    }
-
-    if (body === '') {
-      dom.newsBodyError.textContent = 'Body is required.';
-      dom.newsBodyInput.classList.add('invalid');
-      dom.newsBodyInput.setAttribute('aria-invalid', 'true');
-      isValid = false;
-    }
+    const isValid = [
+      validateTextField(dom.newsTitleInput, dom.newsTitleError, {
+        label: 'Title',
+        minLength: 4,
+      }),
+      validateTextField(dom.newsSummaryInput, dom.newsSummaryError, {
+        label: 'Summary',
+        minLength: 10,
+      }),
+      validateTextField(dom.newsBodyInput, dom.newsBodyError, {
+        label: 'Body',
+        minLength: 20,
+        minLengthMessage: 'Body must be at least 20 characters.',
+      }),
+    ].every(Boolean);
 
     if (!isValid) {
       return;

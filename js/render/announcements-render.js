@@ -74,7 +74,7 @@ export function renderAnnouncementList(state) {
   });
 }
 
-export function renderAnnouncementDetail(state) {
+export function renderAnnouncementDetail(state, onBack) {
   const announcement = getSelectedAnnouncement();
   const currentUser = getCurrentUser();
 
@@ -90,6 +90,12 @@ export function renderAnnouncementDetail(state) {
 
   const content = document.createElement('div');
   content.className = 'ticket-detail-content';
+
+  const backBtn = document.createElement('button');
+  backBtn.type = 'button';
+  backBtn.id = 'announcement-back-btn';
+  backBtn.textContent = '← Back';
+  backBtn.addEventListener('click', onBack);
 
   const header = document.createElement('div');
   header.className = 'ticket-detail-header';
@@ -118,7 +124,7 @@ export function renderAnnouncementDetail(state) {
   body.className = 'ticket-detail-description';
   body.textContent = announcement.body;
 
-  content.append(header, body);
+  content.append(backBtn, header, body);
 
   if (currentUser?.role === 'admin') {
     const actions = document.createElement('div');
