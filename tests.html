@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Component Smoke Tests</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .test-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .test-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid #f0f0f0;
+            margin-bottom: 1.5rem;
+        }
+
+        .summary-text {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .summary-stat {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .summary-stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .summary-stat-label {
+            font-size: 0.85rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .test-list {
+            list-style: none;
+        }
+
+        .test-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            background: #f9f9f9;
+            transition: all 0.3s ease;
+        }
+
+        .test-item.pending {
+            background: #f0f7ff;
+            border-left: 4px solid #667eea;
+        }
+
+        .test-item.passed {
+            background: #f0fdf4;
+            border-left: 4px solid #22c55e;
+        }
+
+        .test-item.failed {
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+        }
+
+        .test-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .test-icon.spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #e0e0e0;
+            border-top: 2px solid #667eea;
+        }
+
+        .test-icon.passed::before {
+            content: '✓';
+            font-size: 1.5rem;
+            color: #22c55e;
+            font-weight: bold;
+        }
+
+        .test-icon.failed::before {
+            content: '✕';
+            font-size: 1.5rem;
+            color: #ef4444;
+            font-weight: bold;
+        }
+
+        .test-name {
+            flex: 1;
+            font-size: 1rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .test-error {
+            color: #ef4444;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: #fef2f2;
+            border-radius: 4px;
+            border-left: 3px solid #ef4444;
+            padding-left: 0.75rem;
+        }
+
+        .test-time {
+            font-size: 0.8rem;
+            color: #999;
+            min-width: 60px;
+            text-align: right;
+        }
+
+        .status-message {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .status-message.running {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-message.complete {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: white;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background 0.3s ease;
+        }
+
+        .back-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Component Tests</h1>
+            <p>Smoke tests for all components</p>
+        </div>
+
+        <div class="test-card">
+            <div id="status-message" class="status-message running">
+                <span class="spinner" style="width: 16px; height: 16px; border: 2px solid #1e40af; border-top: 2px solid #ffffff; display: inline-block; margin-right: 0.5rem;"></span>
+                Running tests...
+            </div>
+
+            <div class="test-summary">
+                <div class="summary-text">
+                    <div class="summary-stat">
+                        <div class="summary-stat-value" id="total-count">0</div>
+                        <div class="summary-stat-label">Total</div>
+                    </div>
+                    <div class="summary-stat">
+                        <div class="summary-stat-value" id="passed-count" style="color: #22c55e;">0</div>
+                        <div class="summary-stat-label">Passed</div>
+                    </div>
+                    <div class="summary-stat">
+                        <div class="summary-stat-value" id="failed-count" style="color: #ef4444;">0</div>
+                        <div class="summary-stat-label">Failed</div>
+                    </div>
+                </div>
+                <div id="pass-rate" style="font-size: 1.2rem; font-weight: bold; color: #333;">—%</div>
+            </div>
+
+            <ul class="test-list" id="test-list"></ul>
+        </div>
+
+        <div class="footer">
+            <a href="index.html" class="back-link">← Back to Portal</a>
+        </div>
+    </div>
+
+    <script type="module">
+        import { runAllTests } from './js/tests/smoke-tests.js';
+
+        const testList = document.getElementById('test-list');
+        const statusMessage = document.getElementById('status-message');
+        const totalCount = document.getElementById('total-count');
+        const passedCount = document.getElementById('passed-count');
+        const failedCount = document.getElementById('failed-count');
+        const passRate = document.getElementById('pass-rate');
+
+        const testElements = {};
+
+        async function initializeTests(results) {
+            // Create placeholder elements for each test
+            results.forEach((result, index) => {
+                const li = document.createElement('li');
+                li.className = 'test-item pending';
+                li.id = `test-${index}`;
+                li.innerHTML = `
+                    <div class="test-icon spinner"></div>
+                    <div style="flex: 1;">
+                        <div class="test-name">${result.name}</div>
+                    </div>
+                    <div class="test-time">—</div>
+                `;
+                testList.appendChild(li);
+                testElements[result.name] = { li, index, startTime: Date.now() };
+            });
+        }
+
+        function updateTestStatus(result) {
+            const elem = testElements[result.name];
+            if (!elem) return;
+
+            const li = elem.li;
+            const duration = ((Date.now() - elem.startTime) / 1000).toFixed(2);
+            
+            li.className = result.passed ? 'test-item passed' : 'test-item failed';
+            
+            let html = `
+                <div class="test-icon ${result.passed ? 'passed' : 'failed'}"></div>
+                <div style="flex: 1;">
+                    <div class="test-name">${result.name}</div>
+                    ${result.error ? `<div class="test-error">${escapeHtml(result.error)}</div>` : ''}
+                </div>
+                <div class="test-time">${duration}s</div>
+            `;
+            
+            li.innerHTML = html;
+        }
+
+        function updateSummary(results) {
+            const total = results.length;
+            const passed = results.filter(r => r.passed).length;
+            const failed = total - passed;
+            const rate = total > 0 ? Math.round((passed / total) * 100) : 0;
+
+            totalCount.textContent = total;
+            passedCount.textContent = passed;
+            failedCount.textContent = failed;
+            passRate.textContent = `${rate}%`;
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        async function runTests() {
+            const results = await runAllTests();
+            
+            await initializeTests(results);
+            
+            for (const result of results) {
+                updateTestStatus(result);
+                updateSummary(results);
+                // Small delay to show animation
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+
+            // Update final status
+            statusMessage.className = 'status-message complete';
+            const allPassed = results.every(r => r.passed);
+            statusMessage.innerHTML = allPassed 
+                ? '✓ All tests passed!' 
+                : '✕ Some tests failed';
+        }
+
+        // Run tests on page load
+        runTests().catch(error => {
+            console.error('Test runner error:', error);
+            statusMessage.className = 'status-message';
+            statusMessage.textContent = 'Error running tests: ' + error.message;
+        });
+    </script>
+</body>
+
+</html>
