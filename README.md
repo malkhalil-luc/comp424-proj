@@ -10,7 +10,7 @@
     Type in a browser: `http://localhost:4040/`
 
 - Run deployed version:
-    Type URL in browser: `https://malkhalil-luc.github.io/comp424-proj/`
+    Type URL in browser: `https://malkhalil-luc.github.io/comp424-proj/tests.html`
 
 ## Testing
 Smoke test page: `http://localhost:4040/test/`
@@ -109,5 +109,5 @@ The final test plan recorded actual results for every test case and was used to 
 
 ## Deployed URL
  `https://malkhalil-luc.github.io/comp424-proj/`
- `https://malkhalil-luc.github.io/comp424-proj/test/`
+ `https://malkhalil-luc.github.io/comp424-proj/tests.html`
 
